@@ -5,8 +5,12 @@ RUN apt-get update && \
 
 
 WORKDIR /app
-COPY . /app/
+COPY . .
 
 RUN pip3 install -r requirements.txt
-CMD ["cd","/app"]
-#CMD ["pytest", "tests"]
+#ENTRYPOINT [ "pytest" ]
+#CMD ["tests"]
+ENTRYPOINT [ "python3" ]
+CMD ["app.py"]
+#
+
