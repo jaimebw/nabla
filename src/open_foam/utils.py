@@ -8,6 +8,12 @@ class FoamInstallationError(Exception):
     """
     pass
 
+class FoamDictError(Exception):
+    """
+    Error class for Foam keys that are not avalable
+    """
+    pass
+
 
 def check_installation()->bool:
     """

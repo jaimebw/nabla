@@ -1,5 +1,9 @@
 import subprocess as sp
+from .utils import FoamDictError
 from pathlib import Path
+from typing import List,Dict
+
+
 
 class BaseFoam:
     """
@@ -13,11 +17,25 @@ class BaseFoam:
         """
         with open(file_name, 'w') as f:
             f.write(content)
-
-    def __format_dict(self):
-        pass
-    def __check_existance(self):
-        pass
+    @staticmethod
+    def format_dict(params_dict:Dict)->Dict:
+        """
+        Format the params dict to as the foam file
+        """
+        for key in params_dict:
+            params_dict[key] = "\t"+key+"  "+params_dict[key]+";"
+        return params_dict
+        
+    @staticmethod
+    def check_dictkey_existance(foam_keys:List[str],params:Dict)->bool:
+        """
+        Check if any of the introduced parametes contains non possible keys for the Open Foam file
+        """
+        if (set(params) - set(foam_keys) == set()):
+            return True
+        else:
+            raise FoamDictError("One or multiples parameter are not listed in the possible Open Fom dict")
+        
     @staticmethod
     def dict_header()->str:
         """
@@ -29,18 +47,19 @@ class BaseFoam:
    \\    /   O peration     | Website:  https://openfoam.org
     \\  /    A nd           | Version:  9
      \\/     M anipulation  | NABLA UI
-\*---------------------------------------------------------------------------*/\n"""
+\*---------------------------------------------------------------------------*/
+"""
     @staticmethod
     def dict_params(dict_type)->str:
         """
         Parameters for the type of file
         """
         return r"""FoamFile
-{{
+{
     format      ascii;
     class       dictionary;
     object      %s;
-}}
+}
 """ %dict_type
     
     
@@ -51,12 +70,68 @@ class BlockMesh(BaseFoam):
     """
     def __init__(self) -> None:
         self.dict_type = "blockMeshDict"
-    
-    def create_file(self) -> None:
+
+    def __content(self)->str:
         """
-        Creates the blockMeshDict file
+        Generate the file content
         """
         header = super().dict_header()
         params = super().dict_params(self.dict_type)
-        content = header + params
-        super().create_file(f"{self.dict_type}", content)
+        return header + params + self.domain_string
+
+
+    def create_file(self) -> None:
+        """
+        Creates the blockMeshDict file
+        
+        TO-DO: 
+            * Add the spatial varibles to the BlockMesh file
+        """
+        super().create_file(f"{self.dict_type}", self.__content())
+
+
+    def set_domain(self,params:Dict):
+        """
+        Definition of the domain for the simulation
+        """
+        domain_keys = [
+                "xMax",
+                "yMax",
+                "zMax",
+                "xMin",
+                "yMin",
+                "zMin",
+                "xCells",
+                "yCells",
+                "zCells",
+                "xUCells",
+                "xMCells",
+                "xDCells",
+                "yUCells",
+                "yMCells",
+                "yDCells",
+                "zUCells",
+                "zMCells",
+                "zDCells",
+                "xGrading",
+                "xUgrading",
+                "xMgrading",
+                "xDgrading",
+                "yGrading",
+                "yUgrading",
+                "yMgrading",
+                "yDgrading",
+                "zGrading",
+                "zUgrading",
+                "zMgrading",
+                "zDgrading",
+                "leadGrading"
+                ]
+        super().check_dictkey_existance(domain_keys,params)
+
+        self.domain_string = "domain\n{\n"
+        for key in params: 
+            self.domain_string = self.domain_string+ "\t"+key+"  "+str(params[key])+";\n"
+        self.domain_string = self.domain_string + "}"
+        self.domain_params = params
+
