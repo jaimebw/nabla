@@ -51,7 +51,6 @@ class OpenFoamForm(FlaskForm):
     
     description = StringField('Describe the file if you want')
     fdata = StringField('Add the dictonary to the web app',validators=[DataRequired()])
-    user_id = HiddenField(validators=[DataRequired()])
     submit = SubmitField('Add dictonary')
-    
+
     

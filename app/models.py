@@ -50,6 +50,12 @@ class OpenFoamData(db.Model):
 
     def __repr__(self) -> str:
         return '<OpenFoamData {}>'.format(self.name)
+    
+    def set_userid(self,user_id):
+        """
+        Set the user id as the foregin key
+        """
+        self.user_id = user_id
 
 
 #class Simulations(db.Model):

@@ -84,15 +84,16 @@ def add_dict():
     """
     form =  OpenFoamForm()
     if form.validate_on_submit():
-        of_file = OpenFoamData(name = form.fname,
-                               dict_class = form.fclass,
-                               description = form.description,
-                               dict_data = form.dict_data,
-                               user_id = current_user.id
+        of_file = OpenFoamData(name = form.fname.data,
+                               dict_class = form.fclass.data,
+                               description = form.description.data,
+                               dict_data = form.fdata.data
                                )
+        of_file.set_userid(current_user.id)
         db.session.add(of_file)
         db.session.commit()
         flash(f"Added {form.fclass} to the database")
+        return redirect(url_for('index'))
     return render_template('simulations.html',form = form)
 
 
