@@ -11,6 +11,6 @@ RUN pip3 install -r requirements.txt
 #ENTRYPOINT [ "pytest" ]
 #CMD ["tests"]
 ENTRYPOINT [ "python3" ]
-CMD ["app.py"]
+CMD ["nabla.py"]
 #
 

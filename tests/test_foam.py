@@ -1,4 +1,4 @@
-from src.open_foam import foam
+from app.pyfoam import foam
 
 
 domain_dict = {

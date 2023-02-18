@@ -1,1 +1,6 @@
 .DS_Store
+.pytest_cache
+__pycache__
+.ipynb_checkpoints
+*.ipynb
+tests/aerofoilNACA0012/dynamicCode

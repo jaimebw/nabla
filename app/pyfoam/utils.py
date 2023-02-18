@@ -1,6 +1,4 @@
 from pathlib import Path 
-import os
-
 
 class FoamInstallationError(Exception):
     """
@@ -18,6 +16,8 @@ class FoamDictError(Exception):
 def check_installation()->bool:
     """
     Check if Open Foam is installed in the system
+
+    This function may change so it is not blocking program in case you only want to design something.
 
     """
     path_to_foam = Path("/openfoam")
