@@ -41,7 +41,7 @@ class OpenFoamData(db.Model):
 
     """
     id = db.Column(db.Integer,primary_key = True)
-    name = db.Column(db.String(64),index = True, unique = True)
+    name = db.Column(db.String(64),index = True )
     dict_class = db.Column(db.String(64))
     description = db.Column(db.String(120),nullable = True)
     dict_data = db.Column(db.Text)
