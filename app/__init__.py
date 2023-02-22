@@ -7,6 +7,7 @@ from flask_bootstrap import Bootstrap5
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['DEBUG'] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app,db)
 login = LoginManager(app)

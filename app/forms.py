@@ -45,7 +45,12 @@ class OpenFoamForm(FlaskForm):
     fname = StringField('Name of your file')
     fclass = SelectField('Type of file',
                              choices = [('blockMeshDict','Block Mesh dict'),
-                                        ('systemDict','System dict')
+                                        ('controlDict','Control dict'),
+                                        ('fvSolution','fVSolution dict'),
+                                        ('decomposeParDict','decompose Par dict'),
+                                        ('extrudeMeshDict','Extrude Mesh dict'),
+
+                                        ('other','Other kind of file')
                                         ],
                              validators=[DataRequired()])
     

@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
 {% from 'bootstrap5/form.html' import render_form %}
 
-{% block content %}
-    <div class="d-flex justify-content-center align-items-center">
+<!--
+* TO-DO:
+    * Mejorar la presentacion del loggeo
+    * Hay que estudiarse como usar bootstrap5 bien
+
+-->
+{% block app_content %}
+<div class="form-outline mb-4">
         <div class= "text-center">
     <h1>Sign In</h1>
     <div class="row">
@@ -13,5 +19,4 @@
     <br>
     <p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>
 {% endblock %}
-
 

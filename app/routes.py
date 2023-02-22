@@ -1,6 +1,6 @@
 from app import app,db
 from app.forms import *
-from flask import  render_template,flash,redirect, url_for,request
+from flask import  render_template,flash,redirect, url_for,request,make_response,send_file
 from flask_login import current_user, login_required,login_user,logout_user
 from app.models import *
 from werkzeug.urls import url_parse
@@ -64,12 +64,10 @@ def user(username):
     username: username id of the logged person
     """
     user = User.query.filter_by(username = username).first_or_404()
-    posts = [
-            {'author':user , 'body':'Test 1'},
-            {'author':user , 'body': 'Test 2'}
+    files = OpenFoamData.query.filter_by(user_id = user.id).all()
 
-            ]
-    return render_template('user.html',user = user, posts = posts)
+    return render_template('user.html',user = user, files = files)
+
 
 
 @app.route('/add_dict',methods = ['GET','POST'])
@@ -94,7 +92,19 @@ def add_dict():
         db.session.commit()
         flash(f"Added {form.fclass} to the database")
         return redirect(url_for('index'))
-    return render_template('simulations.html',form = form)
+    return render_template('simulations.html',title = "Simulations",form = form)
+
+@app.route('/download_dict',methods = ['POST'])
+def download_dict():
+    """
+    Route for downloading a dict file
+    """
+    id = request.form.get('id')
+    app.logger.debug(f"lol:{id}")
+    file = OpenFoamData.query.filter_by(id = id).first_or_404()
+    response = make_response(file.dict_data)
+    response.headers.set('Content-Disposition', 'attachment', filename=file.dict_class)
+    return response
 
 
 
