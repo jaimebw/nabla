@@ -1,20 +1,30 @@
 from app import app,db
 from app.forms import *
-from flask import  render_template,flash,redirect, url_for,request,make_response,send_file
+from flask import  render_template,flash,redirect, url_for,request,make_response
 from flask_login import current_user, login_required,login_user,logout_user
 from app.models import *
 from werkzeug.urls import url_parse
+from app.pyfoam.utils import check_foam_installation
 
 
 @app.route('/')
 @app.route('/index')
 @login_required
 def index():
-    user = {"username":"Jaime"}
+    """
+    Routes to the index template
+    """
+    if not check_foam_installation():
+        app.logger.debug("Open Foam not installed")
+        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
     return render_template('index.html')
+
 
 @app.route('/login',methods = ['GET','POST'])
 def login():
+    """
+    Routes to the loging template
+    """
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
@@ -100,7 +110,7 @@ def download_dict():
     Route for downloading a dict file
     """
     id = request.form.get('id')
-    app.logger.debug(f"lol:{id}")
+    app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
     file = OpenFoamData.query.filter_by(id = id).first_or_404()
     response = make_response(file.dict_data)
     response.headers.set('Content-Disposition', 'attachment', filename=file.dict_class)

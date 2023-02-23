@@ -1,4 +1,7 @@
 from pathlib import Path 
+import os
+
+FOAM_DIR = Path(os.environ.get('FOAM_DIR'))
 
 class FoamInstallationError(Exception):
     """
@@ -13,18 +16,16 @@ class FoamDictError(Exception):
     pass
 
 
-def check_installation()->bool:
+def check_foam_installation()->bool:
     """
     Check if Open Foam is installed in the system
 
-    This function may change so it is not blocking program in case you only want to design something.
-
     """
-    path_to_foam = Path("/openfoam")
-    if not path_to_foam.exists():
-        raise FoamInstallationError("Open Foam is not installed in your system")
-    else:
+    path_to_foam = FOAM_DIR
+    if path_to_foam.exists():
         return True
+    else:
+        return False
 
 def generate_directory_tree()->None:
     """

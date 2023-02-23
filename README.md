@@ -6,3 +6,16 @@ Actually, it is better to use:
 * ```docker run -it open-foam``` : this will rund the commands
 To build the container: ```docker compose build```
 To run the app: ```docker compose up```
+
+## Db notes
+To modify the sqlite database, you should use the Flask shell:
+```bash
+flask shell
+```
+And the run the next Python code:
+```python3
+from app.model import *
+whatever_opp
+db.session.commit()
+,
+```

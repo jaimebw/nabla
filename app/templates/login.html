@@ -1,17 +1,11 @@
 {% extends 'base.html' %}
 {% from 'bootstrap5/form.html' import render_form %}
 
-<!--
-* TO-DO:
-    * Mejorar la presentacion del loggeo
-    * Hay que estudiarse como usar bootstrap5 bien
-
--->
 {% block app_content %}
 <div class="form-outline mb-4">
         <div class= "text-center">
     <h1>Sign In</h1>
-    <div class="row">
+     <div class="row justify-content-center">
         <div class="col-md-4">
             {{ render_form(form) }}
         </div>
