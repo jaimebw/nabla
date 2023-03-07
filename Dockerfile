@@ -9,5 +9,5 @@ COPY . .
 SHELL ["/bin/bash", "-l", "-c"]
 RUN pip3 install -r requirements.txt
 
-CMD ["pytest"]
+CMD ["pytest","-s"]
 

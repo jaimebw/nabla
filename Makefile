@@ -19,7 +19,8 @@ run:
 	docker run --name $(CONTAINER_NAME) -it $(IMAGE_NAME) bash
 
 test:
-	docker run --rm --name $(CONTAINER_NAME) -it $(IMAGE_NAME) pytest -v -s $(TESTS_DIR)
+	docker build -t $(IMAGE_NAME) -f $(DOCKERFILE) .
+	docker run --privileged --rm --name $(CONTAINER_NAME) -it $(IMAGE_NAME) pytest -v  $(TESTS_DIR)
 
 clean:
 	docker stop $(CONTAINER_NAME) || true
