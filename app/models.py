@@ -26,25 +26,28 @@ class OpenFoamData(db.Model):
     data into the database
 
     TO-DO: 
-        * Add date when the dict is added
-        * Add dict parse to see if the dict would work
+        * Add dict parse to see if the dict would work - Being implemented
     Parameters
     ----------
 
     id: unique id for the OF dictionary
     name: Custom name for the OF dictionary
+    date: Date in which the simulation is added
     dict_class: tells what kind of dictionary it is, for example, blockMeshDict or systemDict
     description: Optional description of the dictionary
     dict_data: Actual dictionary that will be uploaded to the database
+    is_validated: Validate thats the file works in Open Foam
 
     
 
     """
     id = db.Column(db.Integer,primary_key = True)
     name = db.Column(db.String(64),index = True )
+    date = db.Column(db.Date)
     dict_class = db.Column(db.String(64))
     description = db.Column(db.String(120),nullable = True)
     dict_data = db.Column(db.Text)
+    is_validated = db.Column(db.Boolean)
     
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
 
@@ -58,7 +61,6 @@ class OpenFoamData(db.Model):
         self.user_id = user_id
 
 
-#class Simulations(db.Model):
     
 
         

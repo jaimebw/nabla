@@ -1,9 +1,11 @@
 from app import app,db
+from datetime import date
 from app.forms import *
 from flask import  render_template,flash,redirect, url_for,request,make_response
 from flask_login import current_user, login_required,login_user,logout_user
 from app.models import *
 from werkzeug.urls import url_parse
+from app.pyfoam.run import CheckBlocMeshDict
 from app.pyfoam.utils import check_foam_installation
 
 
@@ -93,9 +95,11 @@ def add_dict():
     form =  OpenFoamForm()
     if form.validate_on_submit():
         of_file = OpenFoamData(name = form.fname.data,
+                               date = date.today(),
                                dict_class = form.fclass.data,
                                description = form.description.data,
-                               dict_data = form.fdata.data
+                               dict_data = form.fdata.data,
+                               is_validated = CheckBlocMeshDict(form.fdata.data).check_dict()[0]
                                )
         of_file.set_userid(current_user.id)
         db.session.add(of_file)

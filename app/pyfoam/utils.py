@@ -1,6 +1,7 @@
 from pathlib import Path 
 import os
 
+
 FOAM_DIR = Path(os.environ.get('FOAM_DIR'))
 
 class FoamInstallationError(Exception):
