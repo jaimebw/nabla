@@ -53,7 +53,11 @@ class OpenFoamData(db.Model):
 
     def __repr__(self) -> str:
         return '<OpenFoamData {}>'.format(self.name)
-    
+    def validate(self,is_validated):
+        """
+        Set if the dictionary data is valid
+        """
+        self.is_validated = is_validated
     def set_userid(self,user_id):
         """
         Set the user id as the foregin key

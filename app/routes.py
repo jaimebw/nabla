@@ -98,9 +98,9 @@ def add_dict():
                                date = date.today(),
                                dict_class = form.fclass.data,
                                description = form.description.data,
-                               dict_data = form.fdata.data,
-                               is_validated = CheckBlocMeshDict(form.fdata.data).check_dict()[0]
-                               )
+                               dict_data = form.fdata.data)
+        # Change here to do this directly in the db model, works for now
+        of_file.validate(CheckBlocMeshDict(form.fdata.data).check_dict()[0])
         of_file.set_userid(current_user.id)
         db.session.add(of_file)
         db.session.commit()

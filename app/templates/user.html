@@ -31,6 +31,7 @@ Hay que añadir:
                     <td>{{file.dict_class}}</td>
                     <td>{{file.description}}</td>
                     <td>{{file.id}}</td>
+                    <td> {{file.is_validated}} </td>
                     <td> 
                         <form action="{{ url_for('download_dict') }}" method="post">
                         <input type="hidden" name="id" value="{{ file.id }}">

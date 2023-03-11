@@ -16,7 +16,7 @@ local:
 runf:
 	docker run --name $(CONTAINER_NAME) -it $(IMAGE_NAME) blockMesh
 run:
-	docker run --name $(CONTAINER_NAME) -it $(IMAGE_NAME) bash
+	docker run --name $(CONTAINER_NAME) -it $(IMAGE_NAME) 
 
 test:
 	docker build -t $(IMAGE_NAME) -f $(DOCKERFILE) .

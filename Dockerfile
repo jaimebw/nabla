@@ -9,5 +9,6 @@ COPY . .
 SHELL ["/bin/bash", "-l", "-c"]
 RUN pip3 install -r requirements.txt
 
-CMD ["pytest","-s"]
-
+#CMD ["pytest","-s"]
+ENTRYPOINT [ "python3" ]
+CMD ["nabla.py"]

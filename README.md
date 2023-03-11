@@ -12,10 +12,17 @@ To modify the sqlite database, you should use the Flask shell:
 ```bash
 flask shell
 ```
+### Adding entries from the flask shell
 And the run the next Python code:
 ```python3
 from app.model import *
 whatever_opp
 db.session.commit()
-,
+```
+
+### Migrating the database
+You should use the next command after making any changes on the ```models.py``` file.
+```bash
+flask db migrate -m "Your comment for the migration"
+flask db upgrade
 ```
