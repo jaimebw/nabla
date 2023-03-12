@@ -42,11 +42,11 @@ class OpenFoamData(db.Model):
 
     """
     id = db.Column(db.Integer,primary_key = True)
-    name = db.Column(db.String(64),index = True )
+    fname = db.Column(db.String(64),index = True )
     date = db.Column(db.Date)
     dict_class = db.Column(db.String(64))
     description = db.Column(db.String(120),nullable = True)
-    dict_data = db.Column(db.Text)
+    fdata = db.Column(db.Text)
     is_validated = db.Column(db.Boolean)
     
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'))

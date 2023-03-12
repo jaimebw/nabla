@@ -94,21 +94,24 @@ def add_dict():
     """
     form =  OpenFoamForm()
     if form.validate_on_submit():
-        of_file = OpenFoamData(name = form.fname.data,
+        of_file = OpenFoamData(fname = form.fname.data,
                                date = date.today(),
-                               dict_class = form.fclass.data,
+                               dict_class = form.dict_class.data,
                                description = form.description.data,
-                               dict_data = form.fdata.data)
-        # Change here to do this directly in the db model, works for now
-        of_file.validate(CheckBlocMeshDict(form.fdata.data).check_dict()[0])
+                               fdata = request.files[form.fdata.name].read().decode("unicode_escape"))
+
+        if check_foam_installation():
+            of_file.validate(CheckBlocMeshDict(form.fdata.data).check_dict()[0])
+        else:
+            of_file.validate(False)
         of_file.set_userid(current_user.id)
         db.session.add(of_file)
         db.session.commit()
-        flash(f"Added {form.fclass} to the database")
         return redirect(url_for('index'))
     return render_template('simulations.html',title = "Simulations",form = form)
 
 @app.route('/download_dict',methods = ['POST'])
+@login_required
 def download_dict():
     """
     Route for downloading a dict file
@@ -116,9 +119,23 @@ def download_dict():
     id = request.form.get('id')
     app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
     file = OpenFoamData.query.filter_by(id = id).first_or_404()
-    response = make_response(file.dict_data)
+    app.logger.debug(file.fdata)
+    response = make_response(file.fdata)
     response.headers.set('Content-Disposition', 'attachment', filename=file.dict_class)
     return response
 
+@app.route('/delete_dict', methods=['POST'])
+@login_required
+def delete_dict():
+    """
+    Route for deleting dicts from the database
+    """
+    del_id = request.form.get('id')
+    file =  OpenFoamData.query.filter_by(id = del_id).first_or_404()
+    db.session.delete(file)
+    db.session.commit()
+    user = User.query.filter_by(username = current_user.username).first_or_404()
+    files = OpenFoamData.query.filter_by(user_id = current_user.get_id()).all()
+    return render_template('user.html',user= user,files = files)
 
 

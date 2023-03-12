@@ -23,19 +23,27 @@ Hay que añadir:
                 <th>Name</th>
                 <th>Type</th>
                 <th>Descripion</th>
+                <th>Is it validated? </th>
+                <th> </th>
+                <th> </th>
             </tr>
             <tbody>
                 {% for file in files %}
                 <tr>
-                    <td>{{file.name}}</td>
+                    <td>{{file.fname}}</td>
                     <td>{{file.dict_class}}</td>
                     <td>{{file.description}}</td>
-                    <td>{{file.id}}</td>
                     <td> {{file.is_validated}} </td>
                     <td> 
                         <form action="{{ url_for('download_dict') }}" method="post">
                         <input type="hidden" name="id" value="{{ file.id }}">
                         <button type="submit">Download</button>
+                        </form>
+                    </td>
+                    <td> 
+                        <form action="{{ url_for('delete_dict') }}" method="post">
+                        <input type="hidden" name="id" value="{{ file.id }}">
+                        <button type="submit">Delete</button>
                         </form>
                     </td>
                 </tr>

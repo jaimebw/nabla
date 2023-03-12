@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField,HiddenField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, HiddenField, FileField
 from wtforms.validators import DataRequired,ValidationError,Email,EqualTo
 from app.models import User
 
@@ -43,7 +43,7 @@ class OpenFoamForm(FlaskForm):
 
     """
     fname = StringField('Name of your file')
-    fclass = SelectField('Type of file',
+    dict_class = SelectField('Type of file',
                              choices = [('blockMeshDict','Block Mesh dict'),
                                         ('controlDict','Control dict'),
                                         ('fvSolution','fVSolution dict'),
@@ -55,7 +55,7 @@ class OpenFoamForm(FlaskForm):
                              validators=[DataRequired()])
     
     description = StringField('Describe the file if you want')
-    fdata = StringField('Add the dictonary to the web app',validators=[DataRequired()])
+    fdata = FileField('Select a file', validators=[DataRequired()])
     submit = SubmitField('Add dictonary')
 
     

@@ -4,68 +4,9 @@
 
 {% block app_content %}
     <h1>Add simulation file</h1>
-    <form action="" method="post">
+    <form action="" method="post" enctype="multipart/form-data">
         {{render_form(form)}}
     </form>
 
 {% endblock %}
 
-<!--
-    Esto esta comentado aunque parezca que no
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.fname.label }}<br>
-            {{ form.fname(size=32) }}<br>
-            {% for error in form.fname.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.fclass.label }}<br>
-            {{ form.fclass(size=32) }}<br>
-            {% for error in form.fclass.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.description.label }}<br>
-            {{ form.description(size=64) }}<br>
-            {% for error in form.description.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.fdata.label }}<br>
-            {{ form.fdata(size=64) }}<br>
-            {% for error in form.fdata.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-        <input type="hidden" name="user_id" value="{{ current_user.id }}">
-    Hay que tocar a lo mejor todo esto para dejarlo bonico
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.fname.label }}<br>
-            {{ form.fname(size=32) }}<br>
-            {% for error in form.fname.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.fclass.label }}<br>
-            {{ form.fclass(size=32) }}<br>
-            {% for error in form.fclass.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.fdata.label }}<br>
-            {{ form.fdata(size=64) }}<br>
-            {% for error in form.fdata.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <input type="hidden" name="user_id" value="{{ current_user.id }}">
-        <p>{{ form.submit() }}</p>
--->
