@@ -22,8 +22,8 @@ Hay que añadir:
             <tr>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Descripion</th>
-                <th>Is it validated? </th>
+                <th>Description</th>
+                <th class="text-center" data-toggle="tooltip" data-placement="top" title="Checkmark indicates a validated dictionary, cross or X indicates an invalid dictionary">Is it validated? </th>
                 <th> </th>
                 <th> </th>
             </tr>
@@ -33,17 +33,23 @@ Hay que añadir:
                     <td>{{file.fname}}</td>
                     <td>{{file.dict_class}}</td>
                     <td>{{file.description}}</td>
-                    <td> {{file.is_validated}} </td>
-                    <td> 
+                    <td class="text-center">
+                        {% if file.is_validated %}
+                            ✅
+                        {% else %}
+                            ❌
+                        {% endif %}
+                    </td>
+                    <td class="text-center" > 
                         <form action="{{ url_for('download_dict') }}" method="post">
                         <input type="hidden" name="id" value="{{ file.id }}">
-                        <button type="submit">Download</button>
+                        <button type="submit" class="btn btn-primary" >Download</button>
                         </form>
                     </td>
-                    <td> 
+                    <td class="text-center" > 
                         <form action="{{ url_for('delete_dict') }}" method="post">
                         <input type="hidden" name="id" value="{{ file.id }}">
-                        <button type="submit">Delete</button>
+                        <button type="submit"class="btn btn-danger">Delete</button>
                         </form>
                     </td>
                 </tr>
