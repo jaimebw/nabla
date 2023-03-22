@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <div class="container">
+        <h1>About Us</h1>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <img src="{{url_for('static',filename='img/nabla.svg')}}"  alt="About Us" >
+            </div>
+            <div class="col-md-6">
+                <h2>Our Mission</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sed tortor quam. Maecenas sollicitudin nisi sit amet sagittis vestibulum. Duis ullamcorper rutrum urna, non lobortis ex blandit vel. Sed vitae velit at dolor blandit rhoncus id id massa. Nunc imperdiet bibendum risus, vel consequat mi fringilla in. Nulla hendrerit ultrices odio, eget aliquet enim feugiat sed.</p>
+                <p>Donec aliquam diam in lorem porttitor, vel molestie dolor lacinia. Donec posuere molestie nulla, eu eleifend justo commodo a. Proin lobortis leo eu justo imperdiet efficitur. Curabitur consectetur sed ipsum eu lobortis. Vivamus nec bibendum dolor. Curabitur facilisis enim ac massa efficitur fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nullam venenatis velit eu luctus maximus.</p>
+                <a href="#" class="btn btn-primary btn-lg">Learn More</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+{% endblock %}
+

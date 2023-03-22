@@ -139,3 +139,13 @@ def delete_dict():
     return render_template('user.html',user= user,files = files)
 
 
+@app.route('/about')
+def about():
+    """
+    Routes to the about page.
+
+    TO-DO:
+        * Add more info in the about page
+        * add some cool images to make it work well
+    """
+    return render_template('about.html',)
