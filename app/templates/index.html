@@ -6,6 +6,7 @@
     <title>Flask app</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+<body>
     <h1>Hi, {{ current_user.username }}!</h1>
     <h2>
     {% with messages = get_flashed_messages() %}
@@ -17,4 +18,5 @@
     {%endif%}
     {%endwith%}
     </h2>
+</body>
 {% endblock %}
