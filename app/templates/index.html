@@ -1,20 +1,29 @@
 {% extends "base.html" %}
 
-  </head>
-{% block content %}
-<head>
-    <title>Flask app</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-    <h1>Hi, {{ current_user.username }}!</h1>
-    <h2>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-     <ul class="flashes">
-        {% for message in messages %}
-         <div class="message_flash">{{ message }}</div>
-        {% endfor %}
-    {%endif%}
-    {%endwith%}
-    </h2>
+{% block app_content %}
+    <div class="row">
+        <div class="col-md-6 window">
+            <h2>Window 1</h2>
+            <p>This is the first window.</p>
+        </div>
+        <div class="col-md-6 window">
+            <h2>Window 2</h2>
+            <p>This is the second window.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 window">
+            <h2>Window 3</h2>
+            <p>This is the third window.</p>
+        </div>
+        <div class="col-md-6 window">
+            <h2>Window 4</h2>
+            <p>This is the fourth window.</p>
+        </div>
+    </div>
 {% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+{% endblock %}
+

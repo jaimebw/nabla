@@ -1,4 +1,17 @@
-body {
-    background: linear-gradient(to bottom right, #4b6cb7, #182848);
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-md-6 {
+    flex: 1 0 50%;
+}
+
+.window {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+    height: 200px;
+    overflow-y: scroll;
 }
 

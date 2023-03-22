@@ -9,13 +9,16 @@ Hay que añadir:
 
 <!-- Informacion del user -->
 {% block app_content %}
-    <h1>User: {{ user.username }}</h1>
 <!--
 * TO-DO:
     * Mejorar la presentacion del loggeo
     * Hay que estudiarse como usar bootstrap5 bien
 
 -->
+<div>
+    <h2> Current available dictionarys </h2>
+</div>
+<div>
     <table>
         <table class="table table-striped">
         <thead>
@@ -56,6 +59,7 @@ Hay que añadir:
                {% endfor %}
             </tbody>
         </table>
+</div>
     </body>
 
 {% endblock %}
