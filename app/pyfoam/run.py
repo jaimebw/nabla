@@ -5,16 +5,19 @@ import shutil
 import subprocess
 from functools import partial
 
-run_shell = partial(subprocess.run,shell = True,capture_output=True) # run subprocess as I want
 
+# run subprocess as I want
+run_shell = partial(subprocess.run,shell = True,capture_output=True) 
 
-class CheckBlocMeshDict:
+class CheckBaseClass:
     """
-    Checks that the blockMeshDict works without issues
+    Base class for the checking classes.
+    Implements common methods for the rest of the clasess.
     """
-    def __init__(self,dict_data:str) ->None:
+    def __init__(self,dict_data:str,dict_type:str)->None:
         self.dict_data = dict_data
-        self.path = Path("blockMesh_test").resolve()
+        self.dict_type = dict_type
+        self.path = Path(f"{dict_type}_test").resolve()
         self.system_path = self.path/"system"
 
     def __generate_system_dir(self)->None:
@@ -23,7 +26,6 @@ class CheckBlocMeshDict:
         """
         self.path.mkdir()
         self.system_path.mkdir()
-        
 
     def __generate_controlDict(self):
         """
@@ -85,6 +87,24 @@ class CheckBlocMeshDict:
         with open(fpath,"w") as f:
             f.write(controlDict_str)
 
+    def __delete_sim(self)->None:
+        """
+        Delete the simulation dir and everything inside
+        """
+        shutil.rmtree(self.path.resolve())
+
+    @staticmethod
+    def __move_to_dir(path_to_move)->None:
+        os.chdir(path_to_move)
+
+
+class CheckBlocMeshDict(CheckBaseClass):
+    """
+    Checks that the blockMeshDict works without issues
+    """
+    def __init__(self,dict_data:str) ->None:
+        super().__init__(dict_data,"blockMesh")
+        self.dict_type = "blockMesh"
 
     def __generate_blockMeshDict(self)->None:
         dict_data = self.dict_data.replace(
@@ -94,11 +114,6 @@ class CheckBlocMeshDict:
         with open(fpath,"w") as f:
             f.write(dict_data)
 
-    def __delete_sim(self)->None:
-        """
-        Delete the simulation dir and everything inside
-        """
-        shutil.rmtree(self.path.resolve())
         
     def __run_blockMesh(self)->subprocess.CompletedProcess:
         """
@@ -106,14 +121,10 @@ class CheckBlocMeshDict:
 
         """
         other = 'su'
-        #dirpath = "cd "+ str(self.path.resolve())
         command_text = other + "&&" + "blockMesh"
         result = run_shell(args = command_text)
         return result
 
-    @staticmethod
-    def __move_to_dir(path_to_move)->None:
-        os.chdir(path_to_move)
 
     def check_dict(self)->Tuple[int,str]:
         """
@@ -131,3 +142,27 @@ class CheckBlocMeshDict:
             error = result.stderr.decode("utf-8")
             return (0,error)
 
+
+
+class CheckDecomposeParDict(CheckBaseClass):
+    """
+    Checks that the decomposeParDict works without issues
+    """
+    def __init__(self,dict_data:str) ->None:
+        super().__init__(dict_data,"decomposePar")
+        self.dict_type = "decomposePar"
+
+    def __generate_decomposeParDict(self)->None:
+        fpath = str(self.system_path/"decomposeParDict")
+        with open(fpath,"w") as f:
+            f.write(self.dict_data)
+
+    def __run_decomposePar(self)->subprocess.CompletedProcess:
+        """
+        Runs the decomposePar command
+
+        """
+        other = 'su'
+        command_text = other + "&&" + "decomposePar"
+        result = run_shell(args = command_text)
+        return result
