@@ -37,6 +37,7 @@ def login():
             flash("Invalid username or password")
             return redirect(url_for('login'))
         login_user(user,remember= form.remember_me.data)
+        app.logger.debug(f"Loged user with id:{user}")
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
@@ -101,6 +102,7 @@ def add_dict():
                                fdata = request.files[form.fdata.name].read().decode("unicode_escape"))
 
         if check_foam_installation():
+            app.logger.debug("Checked blockMeshDict")
             of_file.validate(CheckBlocMeshDict(form.fdata.data).check_dict()[0])
         else:
             of_file.validate(False)
@@ -131,6 +133,7 @@ def delete_dict():
     Route for deleting dicts from the database
     """
     del_id = request.form.get('id')
+    app.logger.debug(f"Deleted dict with id:{id}")
     file =  OpenFoamData.query.filter_by(id = del_id).first_or_404()
     db.session.delete(file)
     db.session.commit()
@@ -148,4 +151,5 @@ def about():
         * Add more info in the about page
         * add some cool images to make it work well
     """
+    app.logger.debug("About pagge accesed")
     return render_template('about.html',)
