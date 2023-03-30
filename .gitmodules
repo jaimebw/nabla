@@ -1,0 +1,3 @@
+[submodule "app/foam_linter"]
+	path = app/foam_linter
+	url = https://github.com/jaimebw/foam_linter.git
