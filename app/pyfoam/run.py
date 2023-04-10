@@ -20,14 +20,14 @@ class CheckBaseClass:
         self.path = Path(f"{dict_type}_test").resolve()
         self.system_path = self.path/"system"
 
-    def __generate_system_dir(self)->None:
+    def _generate_system_dir(self)->None:
         """
         Generate the system dir to save the sim files
         """
         self.path.mkdir()
         self.system_path.mkdir()
 
-    def __generate_controlDict(self):
+    def _generate_controlDict(self):
         """
         Generate the controlDict(its neccesary to run blockMesh).
 
@@ -36,7 +36,6 @@ class CheckBaseClass:
         controlDict_str:string: the minimal data to run the blockMesh using this controlDict
 
         """
-
         controlDict_str = r"""/*--------------------------------*- C++ -*----------------------------------*\
           =========                 |
           \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
@@ -51,35 +50,20 @@ class CheckBaseClass:
             object      controlDict;
         }
         // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
         application     rhoSimpleFoam;
-
         startFrom       latestTime;
-
         startTime       0;
-
         stopAt          endTime;
-
         endTime         1000;
-
         deltaT          1;
-
         writeControl    timeStep;
-
         writeInterval   50;
-
         purgeWrite      0;
-
         writeFormat     ascii;
-
         writePrecision   10;
-
         writeCompression off;
-
         timeFormat      general;
-
         timePrecision   6;
-
         runTimeModifiable true;
         // ************************************************************************* //"""
         fpath = str(self.system_path/"controlDict")
@@ -87,14 +71,14 @@ class CheckBaseClass:
         with open(fpath,"w") as f:
             f.write(controlDict_str)
 
-    def __delete_sim(self)->None:
+    def _delete_sim(self)->None:
         """
         Delete the simulation dir and everything inside
         """
         shutil.rmtree(self.path.resolve())
 
     @staticmethod
-    def __move_to_dir(path_to_move)->None:
+    def _move_to_dir(path_to_move)->None:
         os.chdir(path_to_move)
 
 
@@ -105,7 +89,6 @@ class CheckBlocMeshDict(CheckBaseClass):
     def __init__(self,dict_data:str) ->None:
         super().__init__(dict_data,"blockMesh")
         self.dict_type = "blockMesh"
-
     def __generate_blockMeshDict(self)->None:
         dict_data = self.dict_data.replace(
             "convertToMeters", f"convertToMeters 1 {str(self.path)}"
@@ -115,7 +98,7 @@ class CheckBlocMeshDict(CheckBaseClass):
             f.write(dict_data)
 
         
-    def __run_blockMesh(self)->subprocess.CompletedProcess:
+    def __run_util(self)->subprocess.CompletedProcess:
         """
         Runs the blockMesh command
 
@@ -130,12 +113,12 @@ class CheckBlocMeshDict(CheckBaseClass):
         """
         Checks that the blocMeshDict runs by running a the blockMesh application.
         """
-        self.__generate_system_dir()
-        self.__generate_controlDict()
+        self._generate_system_dir()
+        self._generate_controlDict()
         self.__generate_blockMeshDict()
-        self.__move_to_dir(str(self.path))
-        result = self.__run_blockMesh()
-        self.__delete_sim()
+        self._move_to_dir(str(self.path))
+        result = self.__run_util()
+        self._delete_sim()
         if not result.returncode:
             return (1,result.stdout.decode("utf-8"))
         else:
@@ -157,7 +140,7 @@ class CheckDecomposeParDict(CheckBaseClass):
         with open(fpath,"w") as f:
             f.write(self.dict_data)
 
-    def __run_decomposePar(self)->subprocess.CompletedProcess:
+    def __run_util(self)->subprocess.CompletedProcess:
         """
         Runs the decomposePar command
 
@@ -166,3 +149,19 @@ class CheckDecomposeParDict(CheckBaseClass):
         command_text = other + "&&" + "decomposePar"
         result = run_shell(args = command_text)
         return result
+
+    def check_dict(self)->Tuple[int,str]:
+        """
+        Checks that the decomposePar runs by running a the decmomposePar application.
+        """
+        self._generate_system_dir()
+        self._generate_controlDict()
+        self.__generate_decomposeParDict()
+        self._move_to_dir(str(self.path))
+        result = self.__run_util()
+        self._delete_sim()
+        if not result.returncode:
+            return (1,result.stdout.decode("utf-8"))
+        else:
+            error = result.stderr.decode("utf-8")
+            return (0,error)

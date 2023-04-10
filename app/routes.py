@@ -5,8 +5,11 @@ from flask import  render_template,flash,redirect, url_for,request,make_response
 from flask_login import current_user, login_required,login_user,logout_user
 from app.models import *
 from werkzeug.urls import url_parse
-from app.pyfoam.run import CheckBlocMeshDict
 from app.pyfoam.utils import check_foam_installation
+import sys
+sys.path.append("app/foam_linter")
+from foam_linter import FoamLinter
+
 
 
 @app.route('/')
@@ -100,12 +103,9 @@ def add_dict():
                                dict_class = form.dict_class.data,
                                description = form.description.data,
                                fdata = request.files[form.fdata.name].read().decode("unicode_escape"))
+        linter = FoamLinter(form.dict_class.data)
 
-        if check_foam_installation():
-            app.logger.debug("Checked blockMeshDict")
-            of_file.validate(CheckBlocMeshDict(form.fdata.data).check_dict()[0])
-        else:
-            of_file.validate(False)
+        of_file.validate(linter.lint()[1])
         of_file.set_userid(current_user.id)
         db.session.add(of_file)
         db.session.commit()

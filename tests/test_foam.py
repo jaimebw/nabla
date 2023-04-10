@@ -2,9 +2,11 @@ from app.pyfoam import foam, run
 from app.pyfoam.utils import check_foam_installation
 from pathlib import Path
 import pytest
+import os
 
 
-of_test_dir = Path("../app/tests/aerofoilNACA0012") # this docker path, be careful if you use it in local
+# this docker path, be careful if you use it in local
+of_test_dir = Path("../app/tests/test_case") 
 
 domain_dict = {
     "xMax":100,
@@ -26,20 +28,33 @@ def test_blockMesh():
     blockMesh.set_domain(domain_dict)
     blockMesh.create_file()
 
-
+"""
 @pytest.mark.skipif(check_foam_installation() == False,reason= "OF not installed in system")
 def test_runBlockMesh():
-    """
-    
-    """
-    import os
+    Runs the blockMehs checker
     fblockmesh = of_test_dir/"system"/"blockMeshDict"
-    print(os.getcwd())
 
     with open(str(fblockmesh),"r") as f:
         dict_str = f.read()
 
     checker = run.CheckBlocMeshDict(dict_str)
+    
+    test_tuple = checker.check_dict()
+    print(test_tuple[1])
+    assert 1 == test_tuple[0]
+"""
+@pytest.mark.skipif(check_foam_installation() == False,reason= "OF not installed in system")
+def test_runDecomposePar():
+    """
+    Runs the decomposePar checker
+    """
+    fdecomposepar= of_test_dir/"system"/"decomposeParDict"
+
+
+    with open(str(fdecomposepar),"r") as f:
+        dict_str = f.read()
+
+    checker = run.CheckDecomposeParDict(dict_str)
     
     test_tuple = checker.check_dict()
     print(test_tuple[1])
