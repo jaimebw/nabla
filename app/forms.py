@@ -36,9 +36,9 @@ class RegistrationForm(FlaskForm):
         if user is not None:
             raise ValidationError("Please use a different email address")
 
-class OpenFoamForm(FlaskForm):
+class OpenFoamDictForm(FlaskForm):
     """
-    Form for adding OpenFoam files to the web app
+    Form for adding OpenFoam dictionary files to the web app
 
 
     """
@@ -58,4 +58,14 @@ class OpenFoamForm(FlaskForm):
     fdata = FileField('Select a file', validators=[DataRequired()])
     submit = SubmitField('Add dictonary')
 
+class OpenFoamSimForm(FlaskForm):
+    """
+    Form for adding OpenFoam simulations files
+
+
+    """
+    fname = StringField('Name of your file')
+    description = StringField('Describe the file if you want')
+    fdata = FileField('Select a file', validators=[DataRequired()])
+    submit = SubmitField('Add simulation')
     

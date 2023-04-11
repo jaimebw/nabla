@@ -1,11 +1,11 @@
 from app import app,db
 from datetime import date
-from app.forms import *
 from flask import  render_template,flash,redirect, url_for,request,make_response
 from flask_login import current_user, login_required,login_user,logout_user
-from app.models import *
 from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
+from app.models import *
+from app.forms import *
 import sys
 sys.path.append("app/foam_linter")
 from foam_linter import FoamLinter
@@ -80,7 +80,7 @@ def user(username):
     username: username id of the logged person
     """
     user = User.query.filter_by(username = username).first_or_404()
-    files = OpenFoamData.query.filter_by(user_id = user.id).all()
+    files = OpenFoamDictData.query.filter_by(user_id = user.id).all()
 
     return render_template('user.html',user = user, files = files)
 
@@ -96,21 +96,33 @@ def add_dict():
     ---------
     username: username id of the logged person
     """
-    form =  OpenFoamForm()
-    if form.validate_on_submit():
-        of_file = OpenFoamData(fname = form.fname.data,
+    dict_form =  OpenFoamDictForm()
+    sim_form = OpenFoamDictForm()
+    # add sim form
+    if dict_form.validate_on_submit():
+        dict_file = OpenFoamDictData(fname = dict_form.fname.data,
                                date = date.today(),
-                               dict_class = form.dict_class.data,
-                               description = form.description.data,
-                               fdata = request.files[form.fdata.name].read().decode("unicode_escape"))
-        linter = FoamLinter(form.dict_class.data)
-
-        of_file.validate(linter.lint()[1])
-        of_file.set_userid(current_user.id)
+                               dict_class = dict_form.dict_class.data,
+                               description = dict_form.description.data,
+                               fdata = request.files[dict_form.fdata.name].read().decode("unicode_escape"))
+        linter = FoamLinter(dict_form.dict_class.data)
+        dict_file.validate(linter.lint()[1])
+        dict_file.set_userid(current_user.id)
         db.session.add(of_file)
         db.session.commit()
         return redirect(url_for('index'))
-    return render_template('simulations.html',title = "Simulations",form = form)
+    if sim_form.validate_on_submit():
+        sim_file = OpenFoamSimData(fname = sim_form.fname.data,
+                                   date  = date.today(),
+                                   description = sim_form.description.data,
+                                   fdata = request.files[sim_file.fdata.name])
+        
+        
+
+
+
+    return render_template('simulations.html',title = "Simulations",form = dict_form)
+
 
 @app.route('/download_dict',methods = ['POST'])
 @login_required
@@ -120,11 +132,12 @@ def download_dict():
     """
     id = request.form.get('id')
     app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
-    file = OpenFoamData.query.filter_by(id = id).first_or_404()
+    file = OpenFoamDictData.query.filter_by(id = id).first_or_404()
     app.logger.debug(file.fdata)
     response = make_response(file.fdata)
     response.headers.set('Content-Disposition', 'attachment', filename=file.dict_class)
     return response
+
 
 @app.route('/delete_dict', methods=['POST'])
 @login_required
@@ -134,11 +147,11 @@ def delete_dict():
     """
     del_id = request.form.get('id')
     app.logger.debug(f"Deleted dict with id:{id}")
-    file =  OpenFoamData.query.filter_by(id = del_id).first_or_404()
+    file =  OpenFoamDictData.query.filter_by(id = del_id).first_or_404()
     db.session.delete(file)
     db.session.commit()
     user = User.query.filter_by(username = current_user.username).first_or_404()
-    files = OpenFoamData.query.filter_by(user_id = current_user.get_id()).all()
+    files = OpenFoamDictData.query.filter_by(user_id = current_user.get_id()).all()
     return render_template('user.html',user= user,files = files)
 
 
