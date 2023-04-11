@@ -81,9 +81,11 @@ def user(username):
     username: username id of the logged person
     """
     user = User.query.filter_by(username = username).first_or_404()
-    files = OpenFoamDictData.query.filter_by(user_id = user.id).all()
+    dict_files = OpenFoamDictData.query.filter_by(user_id = user.id).all()
+    sim_files = OpenFoamSimData.query.filter_by(user_id = user.id).all()
 
-    return render_template('user.html',user = user, files = files)
+    return render_template('user.html',user = user, sim_files = sim_files,
+                           dict_files = dict_files)
 
 
 @app.route('/add_dict',methods = ['POST'])
@@ -121,8 +123,7 @@ def add_sim():
         sim_file = OpenFoamSimData(fname = sim_form.fname.data,
                                    date  = date.today(),
                                    description = sim_form.description.data,
-                                   fdata = request.files[sim_form.fdata.name])
-        sim_file.validate()
+                                   fdata = request.files[sim_form.fdata.name].read())
         sim_file.set_userid(current_user.id)
         db.session.add(sim_file)
         db.session.commit()
@@ -147,6 +148,41 @@ def simulations():
 
 
 
+@app.route('/download_sim',methods = ['POST'])
+@login_required
+def download_sim():
+    """
+    Route for downloading a dict file
+    WIP
+    """
+    id = request.form.get('id')
+    app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
+    file = OpenFoamSimData.query.filter_by(id = id).first_or_404()
+    app.logger.debug(file.fname)
+    response = make_response(file.fdata)
+    response.headers.set('Content-Disposition', 'attachment', filename=f"{file.fname}.zip")
+    return response
+
+
+@app.route('/delete_sim', methods=['POST'])
+@login_required
+def delete_sim():
+    """
+    Route for deleting dicts from the database
+    WIP
+    """
+    del_id = request.form.get('id')
+    app.logger.debug(f"Deleted dict with id:{id}")
+    file =  OpenFoamSimData.query.filter_by(id = del_id).first_or_404()
+    db.session.delete(file)
+    db.session.commit()
+    user = User.query.filter_by(username = current_user.username).first_or_404()
+
+    sim_files = OpenFoamSimData.query.filter_by(user_id = current_user.get_id()).all()
+    dict_files = OpenFoamDictData.query.filter_by(user_id = current_user.get_id()).all()
+
+    return render_template('user.html',user= user,sim_files = sim_files
+                           ,dict_files = dict_files)
 
 @app.route('/download_dict',methods = ['POST'])
 @login_required
@@ -176,7 +212,9 @@ def delete_dict():
     db.session.commit()
     user = User.query.filter_by(username = current_user.username).first_or_404()
     files = OpenFoamDictData.query.filter_by(user_id = current_user.get_id()).all()
-    return render_template('user.html',user= user,files = files)
+    sim_files = OpenFoamSimData.query.filter_by(user_id = current_user.get_id()).all()
+    return render_template('user.html',user= user,sim_files = sim_files
+                           ,dict_files = dict_files)
 
 
 @app.route('/about')
