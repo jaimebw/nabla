@@ -96,11 +96,7 @@ class OpenFoamSimData(db.Model):
 
     def __repr__(self) -> str:
         return '<OpenFoamSim {}>'.format(self.name)
-    def validate(self):
-        """
-        Validate the file(needs to be .zip file)
-        """
-        pass
+
     def get_files(self) -> str:
         """
         Uncompress the simulation file

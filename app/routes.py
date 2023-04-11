@@ -7,6 +7,7 @@ from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
 import sys
+# Submodule import
 sys.path.append("app/foam_linter")
 from foam_linter import FoamLinter
 
@@ -85,20 +86,14 @@ def user(username):
     return render_template('user.html',user = user, files = files)
 
 
-
-@app.route('/add_dict',methods = ['GET','POST'])
+@app.route('/add_dict',methods = ['POST'])
 @login_required
 def add_dict():
     """
-    Routing for adding a new dictionary to the database
-
-    PARAMETERS
-    ---------
-    username: username id of the logged person
+    Routing for adding a new simulation to the dataset
     """
     dict_form =  OpenFoamDictForm()
-    sim_form = OpenFoamDictForm()
-    # add sim form
+    sim_form = OpenFoamSimForm()
     if dict_form.validate_on_submit():
         dict_file = OpenFoamDictData(fname = dict_form.fname.data,
                                date = date.today(),
@@ -108,20 +103,49 @@ def add_dict():
         linter = FoamLinter(dict_form.dict_class.data)
         dict_file.validate(linter.lint()[1])
         dict_file.set_userid(current_user.id)
-        db.session.add(of_file)
+        db.session.add(dict_file)
         db.session.commit()
         return redirect(url_for('index'))
+    return render_template('simulations.html',title = "Simulations",
+                           dict_form = dict_form, sim_form = sim_form)
+
+@app.route('/add_sim',methods = ['POST'])
+@login_required
+def add_sim():
+    """
+    Routing for adding a new dictionary to the database
+    """
+    dict_form =  OpenFoamDictForm()
+    sim_form = OpenFoamSimForm()
     if sim_form.validate_on_submit():
         sim_file = OpenFoamSimData(fname = sim_form.fname.data,
                                    date  = date.today(),
                                    description = sim_form.description.data,
-                                   fdata = request.files[sim_file.fdata.name])
+                                   fdata = request.files[sim_form.fdata.name])
+        sim_file.validate()
+        sim_file.set_userid(current_user.id)
+        db.session.add(sim_file)
+        db.session.commit()
         
-        
+    return render_template('simulations.html',title = "Simulations",
+                           dict_form = dict_form, sim_form = sim_form)
+
+@app.route('/simulations',methods = ['GET','POST'])
+@login_required
+def simulations():
+    """
+    Routing for the simulations page
+
+    PARAMETERS
+    ---------
+    username: username id of the logged person
+    """
+    dict_form =  OpenFoamDictForm()
+    sim_form = OpenFoamSimForm()
+    return render_template('simulations.html',title = "Simulations",
+                           dict_form = dict_form, sim_form = sim_form)
 
 
-
-    return render_template('simulations.html',title = "Simulations",form = dict_form)
 
 
 @app.route('/download_dict',methods = ['POST'])

@@ -5,15 +5,17 @@
 {% block app_content %}
 <div>
     <h1>Add dictionary file</h1>
-    <form action="{url_for(add_dict)}" method="post" enctype="multipart/form-data">
-        {{render_form(form)}}
+    <form action="{{ url_for('add_dict') }}" method="post" enctype="multipart/form-data">
+        {{ render_form(dict_form) }}
     </form>
 </div>
+
 <div>
-    <h1>Add simulations files</h1>
-    <form action="{url_for(add_dict)}" method="post" enctype="multipart/form-data">
-        {{render_form(form)}}
+    <h1>Add simulation files</h1>
+    <form action="{{ url_for('add_sim') }}" method="post" enctype="multipart/form-data">
+        {{ render_form(sim_form) }}
     </form>
 </div>
+
 {% endblock %}
 

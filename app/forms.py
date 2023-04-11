@@ -4,6 +4,19 @@ from wtforms.validators import DataRequired,ValidationError,Email,EqualTo
 from app.models import User
 
 
+class ZipFileValidator(DataRequired):
+    """
+    Custom validator that checks if the uploaded file is .zip
+    """
+    def __call__(self, form, field):
+        super().__call__(form, field)
+        file = field.data
+        filename = file.filename
+        
+        if not filename.lower().endswith('.zip'):
+            message = 'Invalid file format. Please upload a Zip file.'
+            raise ValidationError(message)
+
 class LoginForm(FlaskForm):
     """
     Form for login inside the web app
@@ -62,10 +75,9 @@ class OpenFoamSimForm(FlaskForm):
     """
     Form for adding OpenFoam simulations files
 
-
     """
-    fname = StringField('Name of your file')
-    description = StringField('Describe the file if you want')
-    fdata = FileField('Select a file', validators=[DataRequired()])
+    fname = StringField('Name of your simulation')
+    description = StringField('Describe the simulation if you want')
+    fdata = FileField('Select a .zip file', validators=[ZipFileValidator()])
     submit = SubmitField('Add simulation')
     

@@ -33,7 +33,7 @@
                 {{ render_nav_item('login', 'Login')}}
                 {% else %}
                 {{render_nav_item('user','Profile',username = current_user.username)}}
-                {{render_nav_item('add_dict','Simulations')}}
+                {{render_nav_item('simulations','Simulations')}}
                 {{render_nav_item('logout','Logout') }}
                 {% endif %}
                 {{ render_nav_item('about', 'About') }}
