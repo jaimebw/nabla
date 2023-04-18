@@ -1,20 +1,6 @@
 {% extends "base.html" %}
 
-<!--
-Hay que añadir:
-    * Tabla para ver que diccionarios hay
-    * Esa tabla tiene que tener un click para poder ver lo que pone dentro del diccionario de OF
-    * Debes poder descargarte el diccionario
--->
-
-<!-- Informacion del user -->
 {% block app_content %}
-<!--
-* TO-DO:
-    * Mejorar la presentacion del loggeo
-    * Hay que estudiarse como usar bootstrap5 bien
-
--->
 <div>
     <h1>Available simulations </h1>
 </div>
@@ -30,6 +16,12 @@ Hay que añadir:
                 <tr>
                     <td>{{file.fname}}</td>
                     <td>{{file.description}}</td>
+                    <td class="text-center" > 
+                        <form action="{{ url_for('run_sim',sim_id = file.id) }}" method="post">
+                        <input type="hidden" name="id" value="{{ file.id }}">
+                        <button type="submit" class="btn btn-secondary" >Run</button>
+                        </form>
+                    </td>
                     <td class="text-center" > 
                         <form action="{{ url_for('download_sim') }}" method="post">
                         <input type="hidden" name="id" value="{{ file.id }}">

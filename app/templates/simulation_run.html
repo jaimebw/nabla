@@ -1,0 +1,28 @@
+
+{% extends "base.html" %}
+
+
+{% block app_content %}
+<!--
+    TODO:
+        * Add buttons for running simulations
+        * Add CSS for showing well the icons
+--> 
+<h1> {{file.fname}} </h1>
+  <div id="directory-tree"></div>
+  <script src="/static/js/jquery.js"></script>
+  <script src="/static/js/jstree.min.js"></script>
+  <script>
+    const dir_tree= {{ dir_tree|safe }};
+    console.log(dir_tree);
+    $(document).ready(function() {
+        $('#directory-tree').jstree({
+            'core': {
+                'data':dir_tree 
+            }
+        }, function() {
+            $('#directory-tree').jstree('open_all');
+        });
+    });
+</script>
+{% endblock %}

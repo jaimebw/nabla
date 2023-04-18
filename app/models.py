@@ -1,7 +1,7 @@
 from werkzeug.security import generate_password_hash,check_password_hash
 from app import db,login
 from flask_login import UserMixin
-
+from app.utils import get_zip_directory_structure
 
 
 class User(UserMixin,db.Model):
@@ -72,16 +72,18 @@ class OpenFoamDictData(db.Model):
 
 class OpenFoamSimData(db.Model):
     """
-    Class for the Open Foam data table that will input the User
+    Class for the Open Foam simulations tables that will input the User
     data into the database
 
     Parameters
     ----------
 
-    id: unique id for the OF dictionary
-    name: Custom name for the OF dictionary
+    id: unique id for the OF simulation 
+    name: Custom name for the OF simulation
     date: Date in which the simulation is added
     description: Optional description of the dictionary
+    fdata: Binary data of the simulation, must a be .zip file
+    dir_tree: Directory tree of the simulation 
 
     
 
@@ -91,18 +93,20 @@ class OpenFoamSimData(db.Model):
     date = db.Column(db.Date)
     description = db.Column(db.String(120),nullable = True)
     fdata = db.Column(db.LargeBinary)
-    
+    dir_tree= db.Column(db.LargeBinary)
+
+
     user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
 
     def __repr__(self) -> str:
         return '<OpenFoamSim {}>'.format(self.name)
 
-    def get_files(self) -> str:
+    def set_dir_tree(self,zip_file) -> None:
         """
-        Uncompress the simulation file
         """
-        pass
-    def set_userid(self,user_id):
+        self.dir_tree= get_zip_directory_structure(zip_file).encode('utf-8')
+
+    def set_userid(self,user_id)->None:
         """
         Set the user id as the foregin key
         """

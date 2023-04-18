@@ -6,6 +6,7 @@ from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
+import json
 import sys
 # Submodule import
 sys.path.append("app/foam_linter")
@@ -120,11 +121,13 @@ def add_sim():
     dict_form =  OpenFoamDictForm()
     sim_form = OpenFoamSimForm()
     if sim_form.validate_on_submit():
+        zipfile = request.files[sim_form.fdata.name]
         sim_file = OpenFoamSimData(fname = sim_form.fname.data,
                                    date  = date.today(),
                                    description = sim_form.description.data,
-                                   fdata = request.files[sim_form.fdata.name].read())
+                                   fdata = zipfile.read())
         sim_file.set_userid(current_user.id)
+        sim_file.set_dir_tree(zipfile)
         db.session.add(sim_file)
         db.session.commit()
         
@@ -145,6 +148,17 @@ def simulations():
     sim_form = OpenFoamSimForm()
     return render_template('simulations.html',title = "Simulations",
                            dict_form = dict_form, sim_form = sim_form)
+
+@app.route('/run_sim/<sim_id>',methods = ['GET','POST'])
+@login_required
+def run_sim(sim_id):
+    app.logger.debug(f"Id of simulaton to be run:{sim_id}")
+    file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
+
+    dir_tree = eval(file.dir_tree.decode('utf-8'))
+    app.logger.debug(dir_tree)
+    return render_template('simulation_run.html',file = file,
+                           dir_tree = json.dumps(dir_tree))
 
 
 
