@@ -1,4 +1,5 @@
 from app import app,db
+import asyncio
 from datetime import date
 from flask import  render_template,flash,redirect, url_for,request,make_response
 from flask_login import current_user, login_required,login_user,logout_user
@@ -17,7 +18,7 @@ from foam_linter import FoamLinter
 @app.route('/')
 @app.route('/index')
 @login_required
-def index():
+async def index():
     """
     Routes to the index template
     """
@@ -28,7 +29,7 @@ def index():
 
 
 @app.route('/login',methods = ['GET','POST'])
-def login():
+async def login():
     """
     Routes to the loging template
     """
@@ -200,7 +201,7 @@ def delete_sim():
 
 @app.route('/download_dict',methods = ['POST'])
 @login_required
-def download_dict():
+async def download_dict():
     """
     Route for downloading a dict file
     """
@@ -229,6 +230,39 @@ def delete_dict():
     sim_files = OpenFoamSimData.query.filter_by(user_id = current_user.get_id()).all()
     return render_template('user.html',user= user,sim_files = sim_files
                            ,dict_files = dict_files)
+
+async def run_command(command):
+    # Run subprocess and capture output
+    process = await asyncio.create_subprocess_shell(
+        command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    output, _ = await process.communicate()
+
+    # Convert bytes to string
+    output_str = output.decode('utf-8').split("\n")
+    output_str = {"data":output_str[0:3]}
+
+    app.logger.debug(type(output_str))
+    app.logger.debug(output_str)
+    #return {"data":["a","b"]}
+    return output_str
+            
+
+
+@app.route('/run',methods = ['GET','POST'])
+async def test_execute_sim():
+    # DO NO USE JSON DUMP
+    command = "ls"
+    output = await run_command(command)
+    app.logger.debug(f"Test route:{type(output)}\n{output}")
+    return render_template("test.html",output = output)
+
+
+@app.route('/test',methods = ['GET','POST'])
+def test():
+    return render_template("test.html")
 
 
 @app.route('/about')
