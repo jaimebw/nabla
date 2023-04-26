@@ -5,3 +5,4 @@ __pycache__
 *.ipynb
 tests/aerofoilNACA0012/dynamicCode
 *.db
+node_modules
