@@ -7,7 +7,7 @@ from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
-from .utils import run_command
+from .utils import run_command,zip_dir
 import json
 import sys
 # Submodule import
@@ -201,21 +201,24 @@ async def run_sim():
             sim_id = sim_id,
             user_id = sim_entrie.user_id
             )
-    db.session.add(sim_hist)
-    db.session.commit()
     app.logger.debug(f"New simulation added to the history with id:{sim_hist.id}")
     app.logger.debug(f"Staring to run the simulation in another thread:{sim_id}")
 
-    command = ["su",
+    command = [
                f"cd {sim_id}/test_case/",
             "chmod +x ./Allrun",
-            "./Allrun"
-               ]
-    app.logger.debug(command)
+            "./Allrun" ] app.logger.debug(command)
     sim_output = await run_command(command)
-    app.logger.debug(f"Sim output:{sim_output}")
+    sim_results = await zip_dir(f"{sim_id}/test_case")
 
-    return render_template('index.html',sim_output = sim_output)
+    sim_hist.add_results(sim_results)
+    db.session.add(sim_hist)
+    db.session.commit()
+    
+
+    app.logger.debug(f"Sim output:{sim_output}")
+    sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('index.html',sim_output = sim_output,sim_hist = sim_hist)
 
 @app.route('/download_sim',methods = ['POST'])
 @login_required
@@ -230,6 +233,20 @@ async def download_sim():
     app.logger.debug(file.fname)
     response = make_response(file.fdata)
     response.headers.set('Content-Disposition', 'attachment', filename=f"{file.fname}.zip")
+    return response
+
+@app.route('/download_results',methods = ['POST'])
+@login_required
+async def download_sim_results():
+    """
+    Route for downloading a simulation result
+    WIP
+    """
+    id = request.form.get('id')
+    app.logger.debug(f"Id of the results that is downloaded:{id}")
+    file = SimulationHistoryData.query.filter_by(id = id).first_or_404()
+    response = make_response(file.results)
+    response.headers.set('Content-Disposition', 'attachment', filename=f"{file.run_date}.zip")
     return response
 
 
@@ -267,14 +284,6 @@ async def download_dict():
     response.headers.set('Content-Disposition', 'attachment', filename=file.dict_class)
     return response
 
-@app.route('/sim_hist',methods = ['POST'])
-@login_required
-async def simulation_history():
-    user_id = request.form.get('user_id')
-    app.logger.debug(f"Id of the user for it history:{id}")
-    history = SimulationHistoryData.query.filter_by(user_id = user_id)
-    
-    
 
 @app.route('/delete_dict', methods=['POST'])
 @login_required
