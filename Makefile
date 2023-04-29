@@ -1,4 +1,3 @@
-
 # Define variables
 IMAGE_NAME := pythonandfoam
 CONTAINER_NAME := mycontainer
@@ -10,11 +9,15 @@ DOCKERFILE := Dockerfile
 
 build:
 	docker build -t $(IMAGE_NAME) -f $(DOCKERFILE) .
+	docker compose up
 local:
 	source venv/bin/activate
 	flask run
 runf:
 	docker run --name $(CONTAINER_NAME) -it $(IMAGE_NAME) blockMesh
+
+run2:
+	docker run -d -p 5000:5000 $(IMAGE_NAME)
 run:
 	docker run --name $(CONTAINER_NAME) -it $(IMAGE_NAME) 
 

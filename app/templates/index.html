@@ -1,29 +1,79 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <div class="row">
-        <div class="col-md-6 window">
-            <h2>Window 1</h2>
-            <p>This is the first window.</p>
-        </div>
-        <div class="col-md-6 window">
-            <h2>Window 2</h2>
-            <p>This is the second window.</p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 window">
-            <h2>Window 3</h2>
-            <p>This is the third window.</p>
-        </div>
-        <div class="col-md-6 window">
-            <h2>Window 4</h2>
-            <p>This is the fourth window.</p>
+    <div class="container">
+        <h1 class="display-4">Simulation Overview</h1>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Current Simulations</h2>
+                {% if sim_output %}
+                <button class="btn btn-secondary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#terminal-collapse">
+                    Terminal Output
+                </button>
+                <div id="terminal-collapse" class="collapse">
+                    <div class="terminal">
+                        <div><span class="terminal-command"> {{ sim_output.command|last }} </span></div>
+                        {% for output in sim_output.output %}
+                        <div>{{ output }}</div>
+                        {% endfor %}
+                        {% if sim_output.error_code %}
+                        {% for error in sim_output.error_code %}
+                        <div><span class="terminal-error">{{ error }}</span></div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p>There are no simulations running at the moment.</p>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h2>Past Simulations</h2>
+                {% if sim_hist %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Simulation Name</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sims in sim_hist %}
+                            <tr>
+                                <td>{{ sims.fname }}</td>
+                                <td>{{ sims.run_date.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if sims.results %}
+                                    <form action="{{ url_for('download_sim_results') }}" method="post">
+                                        <input type="hidden" name="id" value="{{ sims.id }}">
+                                        <button type="submit" class="btn btn-primary btn-sm">Download Results</button>
+                                    </form>
+                                    <form action="{{ url_for('delete_sim_results') }}" method="post">
+                                        <input type="hidden" name="id" value="{{ sims.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete Results</button>
+                                    </form>
+                                    {% else %}
+                                    No results obtained. Check the simulation logs.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No simulation history available.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% endblock %}
 

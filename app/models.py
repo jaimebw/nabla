@@ -2,6 +2,10 @@ from werkzeug.security import generate_password_hash,check_password_hash
 from app import db,login
 from flask_login import UserMixin
 from app.utils import get_zip_directory_structure
+import zipfile
+import io
+import os
+import datetime
 
 
 class User(UserMixin,db.Model):
@@ -84,7 +88,6 @@ class OpenFoamSimData(db.Model):
     description: Optional description of the dictionary
     fdata: Binary data of the simulation, must a be .zip file
     dir_tree: Directory tree of the simulation 
-
     
 
     """
@@ -96,7 +99,8 @@ class OpenFoamSimData(db.Model):
     dir_tree= db.Column(db.LargeBinary)
 
 
-    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
+    sim_history = db.relationship('SimulationHistoryData', backref='sim', cascade='all, delete-orphan', passive_deletes=True)
 
     def __repr__(self) -> str:
         return '<OpenFoamSim {}>'.format(self.name)
@@ -112,10 +116,44 @@ class OpenFoamSimData(db.Model):
         """
         self.user_id = user_id
 
+    def unzip(self):
+        """
+        Extracts the zip file in a directory with the same id as the sim
 
-    
 
-        
+        TODO:
+            * Add option to add more dir inside the dir file so 
+            you can run multiple simulatons out of only one
+        """
+        dir_name = str(self.id)
+        dir_path = os.path.join(os.getcwd(), dir_name)
+        os.makedirs(dir_path, exist_ok=True)
+
+        zip_file = io.BytesIO(self.fdata)
+        with zipfile.ZipFile(zip_file, "r") as zf:
+            zf.extractall(dir_path)
+
+class SimulationHistoryData(db.Model):
+    """
+    Contains the simulation history for the user
+    """
+    id = db.Column(db.Integer, primary_key=True, index=True, autoincrement=True)
+    fname = db.Column(db.String(64))
+    run_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    results = db.Column(db.LargeBinary)
+
+    # Camel case changes to _ in sqlalchemy
+    sim_id = db.Column(db.Integer, db.ForeignKey('open_foam_sim_data.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
+
+    def __repr__(self) -> str:
+        return '<SimulationHistoryData {} {}>'.format(self.sim_id, self.run_date)
+
+    def add_results(self, results):
+        self.results = results
+
+
+
 
 @login.user_loader
 def load_user(id):

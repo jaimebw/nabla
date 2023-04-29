@@ -1,21 +1,27 @@
 {% extends "base.html" %}
 {% from 'bootstrap5/form.html' import render_form %}
 
-
 {% block app_content %}
-<div>
-    <h1>Add dictionary file</h1>
-    <form action="{{ url_for('add_dict') }}" method="post" enctype="multipart/form-data">
-        {{ render_form(dict_form) }}
-    </form>
-</div>
-
-<div>
-    <h1>Add simulation files</h1>
-    <form action="{{ url_for('add_sim') }}" method="post" enctype="multipart/form-data">
-        {{ render_form(sim_form) }}
-    </form>
-</div>
-
+    <div class="container">
+        <h1 class="display-4">Add Files</h1>
+        <hr>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Add Dictionary File</h2>
+                <form action="{{ url_for('add_dict') }}" method="post" enctype="multipart/form-data">
+                    {{ render_form(dict_form) }}
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2>Add Simulation Files</h2>
+                <form action="{{ url_for('add_sim') }}" method="post" enctype="multipart/form-data">
+                    {{ render_form(sim_form) }}
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% endblock %}

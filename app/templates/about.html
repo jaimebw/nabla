@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 {% block app_content %}
     <div class="container">
-        <h1>About Us</h1>
+        <h1 class="display-4">About Nabla</h1>
         <hr>
         <div class="row">
             <div class="col-md-6">
-                <img src="{{ url_for('static', filename='img/nabla.png') }}" alt="Your Image" >
+                <img src="{{ url_for( 'static', filename='img/nabla.png') }}" alt="Nabla Logo" class="img-fluid rounded">
             </div>
             <div class="col-md-6">
-                <h2>Our Mission</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sed tortor quam. Maecenas sollicitudin nisi sit amet sagittis vestibulum. Duis ullamcorper rutrum urna, non lobortis ex blandit vel. Sed vitae velit at dolor blandit rhoncus id id massa. Nunc imperdiet bibendum risus, vel consequat mi fringilla in. Nulla hendrerit ultrices odio, eget aliquet enim feugiat sed.</p>
-                <p>Donec aliquam diam in lorem porttitor, vel molestie dolor lacinia. Donec posuere molestie nulla, eu eleifend justo commodo a. Proin lobortis leo eu justo imperdiet efficitur. Curabitur consectetur sed ipsum eu lobortis. Vivamus nec bibendum dolor. Curabitur facilisis enim ac massa efficitur fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Nullam venenatis velit eu luctus maximus.</p>
-                <a href="#" class="btn btn-primary btn-lg">Learn More</a>
+                <h2>Overview</h2>
+                <p>Nabla is an intuitive user interface for OpenFoam, designed to showcase the potential of a fully functional UI for running and managing OpenFoam simulations. With Nabla, users can perform a wide range of operations, including:</p>
+                <ul>
+                    <li>Storing simulations in a database</li>
+                    <li>Creating and saving custom simulation dictionaries in a database</li>
+                    <li>Validating dictionaries for OpenFoam compatibility</li>
+                    <li>Executing simulations</li>
+                    <li>Preserving and managing simulation results</li>
+                </ul>
             </div>
         </div>
     </div>

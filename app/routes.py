@@ -1,4 +1,5 @@
 from app import app,db
+import asyncio
 from datetime import date
 from flask import  render_template,flash,redirect, url_for,request,make_response
 from flask_login import current_user, login_required,login_user,logout_user
@@ -6,6 +7,7 @@ from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
+from .utils import run_command,zip_dir
 import json
 import sys
 # Submodule import
@@ -23,9 +25,21 @@ def index():
     """
     if not check_foam_installation():
         app.logger.debug("Open Foam not installed")
-        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
-    return render_template('index.html')
+        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available","info")
+    sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('index.html',sim_hist = sim_hist)
 
+@app.route('/about')
+def about():
+    """
+    Routes to the about page.
+
+    TO-DO:
+        * Add more info in the about page
+        * add some cool images to make it work well
+    """
+    app.logger.debug("About pagge accesed")
+    return render_template('about.html',)
 
 @app.route('/login',methods = ['GET','POST'])
 def login():
@@ -117,6 +131,10 @@ def add_dict():
 def add_sim():
     """
     Routing for adding a new dictionary to the database
+
+
+    TODO:
+        * Add to the form to check the file so there are no errors.
     """
     dict_form =  OpenFoamDictForm()
     sim_form = OpenFoamSimForm()
@@ -130,7 +148,7 @@ def add_sim():
         sim_file.set_dir_tree(zipfile)
         db.session.add(sim_file)
         db.session.commit()
-        
+        return redirect(url_for('index'))
     return render_template('simulations.html',title = "Simulations",
                            dict_form = dict_form, sim_form = sim_form)
 
@@ -149,22 +167,71 @@ def simulations():
     return render_template('simulations.html',title = "Simulations",
                            dict_form = dict_form, sim_form = sim_form)
 
-@app.route('/run_sim/<sim_id>',methods = ['GET','POST'])
+@app.route('/sim_page/<sim_id>',methods = ['GET','POST'])
 @login_required
-def run_sim(sim_id):
+def run_sim_page(sim_id):
+    """
+    Routing for the simulation page
+
+    PARAMETERS
+    ----------
+    sim_id: the simuation_id of the file
+    """
+    if not check_foam_installation():
+        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available","info")
     app.logger.debug(f"Id of simulaton to be run:{sim_id}")
     file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
 
     dir_tree = eval(file.dir_tree.decode('utf-8'))
+    file.unzip()
     app.logger.debug(dir_tree)
     return render_template('simulation_run.html',file = file,
                            dir_tree = json.dumps(dir_tree))
 
 
+@app.route('/run_sim',methods = ['GET','POST'])
+@login_required
+async def run_sim():
+    """
+    Routing for running the simualation on anothe thread
+
+    """
+    if not check_foam_installation():
+        flash("The simulation couldnt be executed","error")
+    sim_id = request.form.get('sim_id')
+    sim_entrie = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
+    sim_hist= SimulationHistoryData(
+            fname = sim_entrie.fname,
+            sim_id = sim_id,
+            user_id = sim_entrie.user_id
+            )
+    app.logger.debug(f"New simulation added to the history with id:{sim_hist.id}")
+    app.logger.debug(f"Staring to run the simulation in another thread:{sim_id}")
+
+    command = [
+               f"cd {sim_id}/test_case/",
+            "chmod +x ./Allrun",
+            "./Allrun" ] 
+    app.logger.debug(command)
+    sim_output = await run_command(command)
+    sim_results = await zip_dir(f"{sim_id}/test_case")
+
+    sim_hist.add_results(sim_results)
+    db.session.add(sim_hist)
+    db.session.commit()
+    
+
+    app.logger.debug(f"Sim output:{sim_output}")
+
+    #sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('simulation_run.html',
+                           file= sim_entrie,
+                           dir_tree = json.dumps(eval(sim_entrie.dir_tree)),
+                           sim_output = sim_output)
 
 @app.route('/download_sim',methods = ['POST'])
 @login_required
-def download_sim():
+async def download_sim():
     """
     Route for downloading a dict file
     WIP
@@ -177,16 +244,44 @@ def download_sim():
     response.headers.set('Content-Disposition', 'attachment', filename=f"{file.fname}.zip")
     return response
 
+@app.route('/download_results',methods = ['POST'])
+@login_required
+async def download_sim_results():
+    """
+    Route for downloading a simulation result
+    WIP
+    """
+    id = request.form.get('id')
+    app.logger.debug(f"Id of the results that is downloaded:{id}")
+    file = SimulationHistoryData.query.filter_by(id = id).first_or_404()
+    response = make_response(file.results)
+    response.headers.set('Content-Disposition', 'attachment', filename=f"{file.run_date}.zip")
+    return response
+
+@app.route('/delete_sim_results', methods=['POST'])
+@login_required
+def delete_sim_results():
+    """
+    Route for deleting simulation results from the database
+    WIP
+    """
+    del_id = request.form.get('id')
+    app.logger.debug(f"Deleted simulation results with id:{id}")
+    file =  SimulationHistoryData.query.filter_by(id = del_id).first_or_404()
+    db.session.delete(file)
+    db.session.commit()
+    sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('index.html',sim_hist=sim_hist )
 
 @app.route('/delete_sim', methods=['POST'])
 @login_required
 def delete_sim():
     """
-    Route for deleting dicts from the database
+    Route for deleting simulations from the database
     WIP
     """
     del_id = request.form.get('id')
-    app.logger.debug(f"Deleted dict with id:{id}")
+    app.logger.debug(f"Deleted simulations with id:{id}")
     file =  OpenFoamSimData.query.filter_by(id = del_id).first_or_404()
     db.session.delete(file)
     db.session.commit()
@@ -200,7 +295,7 @@ def delete_sim():
 
 @app.route('/download_dict',methods = ['POST'])
 @login_required
-def download_dict():
+async def download_dict():
     """
     Route for downloading a dict file
     """
@@ -228,17 +323,9 @@ def delete_dict():
     files = OpenFoamDictData.query.filter_by(user_id = current_user.get_id()).all()
     sim_files = OpenFoamSimData.query.filter_by(user_id = current_user.get_id()).all()
     return render_template('user.html',user= user,sim_files = sim_files
-                           ,dict_files = dict_files)
+                           )
 
+@app.route('/test',methods = ["GET","POST"])
+def test():
+    return render_template("test.html")
 
-@app.route('/about')
-def about():
-    """
-    Routes to the about page.
-
-    TO-DO:
-        * Add more info in the about page
-        * add some cool images to make it work well
-    """
-    app.logger.debug("About pagge accesed")
-    return render_template('about.html',)
