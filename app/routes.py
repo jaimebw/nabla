@@ -26,7 +26,8 @@ def index():
     if not check_foam_installation():
         app.logger.debug("Open Foam not installed")
         flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
-    return render_template('index.html')
+    sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('index.html',sim_hist = sim_hist)
 
 @app.route('/about')
 def about():
@@ -147,7 +148,7 @@ def add_sim():
         sim_file.set_dir_tree(zipfile)
         db.session.add(sim_file)
         db.session.commit()
-        
+        return redirect(url_for('index'))
     return render_template('simulations.html',title = "Simulations",
                            dict_form = dict_form, sim_form = sim_form)
 
@@ -194,8 +195,15 @@ async def run_sim():
 
     """
     sim_id = request.form.get('sim_id')
-    #file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
-    
+    sim_entrie = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
+    sim_hist= SimulationHistoryData(
+            fname = sim_entrie.fname,
+            sim_id = sim_id,
+            user_id = sim_entrie.user_id
+            )
+    db.session.add(sim_hist)
+    db.session.commit()
+    app.logger.debug(f"New simulation added to the history with id:{sim_hist.id}")
     app.logger.debug(f"Staring to run the simulation in another thread:{sim_id}")
 
     command = ["su",
@@ -259,6 +267,14 @@ async def download_dict():
     response.headers.set('Content-Disposition', 'attachment', filename=file.dict_class)
     return response
 
+@app.route('/sim_hist',methods = ['POST'])
+@login_required
+async def simulation_history():
+    user_id = request.form.get('user_id')
+    app.logger.debug(f"Id of the user for it history:{id}")
+    history = SimulationHistoryData.query.filter_by(user_id = user_id)
+    
+    
 
 @app.route('/delete_dict', methods=['POST'])
 @login_required

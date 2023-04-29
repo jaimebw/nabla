@@ -28,11 +28,23 @@
 
         <div class="col-md-6 window">
             <h2>Past simulations</h2>
-            <!--
-                TODO:
-                    * Add model to save simulations times and data
-            -->
             {% if sim_hist %}
+            <table>
+                <thead>
+                  <tr>
+                    <th>Simulatio name</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for sims in sim_hist %}
+                    <tr>
+                      <td>{{ sims.fname }}</td>
+                      <td>{{ sims.run_date.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             {% else %}
             <p> No simulation story </p>
             {% endif%}

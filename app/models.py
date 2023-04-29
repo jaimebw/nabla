@@ -5,6 +5,8 @@ from app.utils import get_zip_directory_structure
 import zipfile
 import io
 import os
+import datetime
+
 
 class User(UserMixin,db.Model):
     """
@@ -132,11 +134,26 @@ class OpenFoamSimData(db.Model):
             zf.extractall(dir_path)
 
 
+class SimulationHistoryData(db.Model):
+    """
+    Contains the simulation history for the user
+    """
+    id = db.Column(db.Integer, primary_key = True,index = True,autoincrement=True)
+    fname = db.Column(db.String(64))
+    run_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    results = db.Column(db.LargeBinary)
 
 
-    
+    sim_id = db.Column(db.Integer,db.ForeignKey('open_foam_sim_data.id'))
+    # Camel case changes to _ in sqlalchemy
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
 
-        
+    def __repr__(self) -> str:
+        return '<SimulationHistoryData {} {}>'.format(self.sim_id,self.run_date)
+
+
+
+
 
 @login.user_loader
 def load_user(id):
