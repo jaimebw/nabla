@@ -40,7 +40,7 @@ def get_zip_directory_structure(zip_file_path:str):
     return json.dumps(nodes)
 
 
-async def run_command(commands):
+async def run_command(command_list):
     """
     Async command running on Flask. Called in various method.
 
@@ -48,30 +48,26 @@ async def run_command(commands):
     ----------
     commands: str or List[str]: command or list of commands
     """
-    if type(commands) == str:
-        commands = [commands]
     
     results = []
     # Run subprocess and capture output
-    commands = " && ".join(commands)
+    commands = " && ".join(command_list)
     process = await asyncio.create_subprocess_shell(
         commands,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
     output, outerror = await process.communicate()
-
     # Convert bytes to string
     output_str = output.decode('utf-8').split("\n")
-    output_str = {"command":commands,
+    output_str = {"command":command_list,
                   "output":output_str,
-                  "error_code":outerror.decode('utf-8')}
+                  "error_code":[outerror.decode('utf-8')]}
     results.append(output_str)
     # Convert bytes to string
-    output_str = {"data":results}
     app.logger.debug(type(output_str))
     app.logger.debug(output_str)
-    return output_str
+    return results[0]
 
 
 

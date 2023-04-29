@@ -10,16 +10,15 @@
         </button>
               <div id="terminal-collapse" class="collapse">
                 <div class="terminal">
-                    {% for command in sim_output.data %}
-                    <div><span class="terminal-command"> {{ command.command }} </span> </div>
-                        {% if command.error_code%}
-                    <div><span class="terminal-error"> {{ command.error_code}} </span> </div>
-                        {% else %}
-                        {% for output in command.output %}
-                        <div> {{ output}}  </div>
-                    {% endfor %}  
+                    <div><span class="terminal-command"> {{ sim_output.command|last }} </span> </div>
+                            {% for output in sim_output.output %}
+                                <div> {{ output}}  </div>
+                            {% endfor %}  
+                        {% if sim_output.error_code%}
+                            {% for error in sim_output.error_code%}
+                                <div><span class="terminal-error"> {{ error}} </span> </div>
+                        {% endfor %}
                         {% endif %}
-                        {% endfor %}    
                 </div>
             </div>
                 {% else %}
