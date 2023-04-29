@@ -4,6 +4,7 @@
     <div class="container">
         <h1 class="display-4">Available Simulations</h1>
         <hr>
+        {% if sim_files %}
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
@@ -43,9 +44,13 @@
                 </tbody>
             </table>
         </div>
+         {% else %}
+            <p>No sim files available.</p>
+        {% endif %}
 
         <h1 class="display-4">Available Dictionaries</h1>
         <hr>
+         {% if dict_files %}
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
@@ -88,6 +93,9 @@
                 </tbody>
             </table>
         </div>
+         {% else %}
+            <p>No dict files available.</p>
+        {% endif %}
     </div>
 {% endblock %}
 

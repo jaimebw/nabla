@@ -258,16 +258,30 @@ async def download_sim_results():
     response.headers.set('Content-Disposition', 'attachment', filename=f"{file.run_date}.zip")
     return response
 
+@app.route('/delete_sim_results', methods=['POST'])
+@login_required
+def delete_sim_results():
+    """
+    Route for deleting simulation results from the database
+    WIP
+    """
+    del_id = request.form.get('id')
+    app.logger.debug(f"Deleted simulation results with id:{id}")
+    file =  SimulationHistoryData.query.filter_by(id = del_id).first_or_404()
+    db.session.delete(file)
+    db.session.commit()
+    sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('index.html',sim_hist=sim_hist )
 
 @app.route('/delete_sim', methods=['POST'])
 @login_required
 def delete_sim():
     """
-    Route for deleting dicts from the database
+    Route for deleting simulations from the database
     WIP
     """
     del_id = request.form.get('id')
-    app.logger.debug(f"Deleted dict with id:{id}")
+    app.logger.debug(f"Deleted simulations with id:{id}")
     file =  OpenFoamSimData.query.filter_by(id = del_id).first_or_404()
     db.session.delete(file)
     db.session.commit()
@@ -309,7 +323,7 @@ def delete_dict():
     files = OpenFoamDictData.query.filter_by(user_id = current_user.get_id()).all()
     sim_files = OpenFoamSimData.query.filter_by(user_id = current_user.get_id()).all()
     return render_template('user.html',user= user,sim_files = sim_files
-                           ,dict_files = dict_files)
+                           )
 
 @app.route('/test',methods = ["GET","POST"])
 def test():

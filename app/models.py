@@ -88,7 +88,6 @@ class OpenFoamSimData(db.Model):
     description: Optional description of the dictionary
     fdata: Binary data of the simulation, must a be .zip file
     dir_tree: Directory tree of the simulation 
-
     
 
     """
@@ -100,7 +99,8 @@ class OpenFoamSimData(db.Model):
     dir_tree= db.Column(db.LargeBinary)
 
 
-    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
+    sim_history = db.relationship('SimulationHistoryData', backref='sim', cascade='all, delete-orphan', passive_deletes=True)
 
     def __repr__(self) -> str:
         return '<OpenFoamSim {}>'.format(self.name)
@@ -133,27 +133,24 @@ class OpenFoamSimData(db.Model):
         with zipfile.ZipFile(zip_file, "r") as zf:
             zf.extractall(dir_path)
 
-
 class SimulationHistoryData(db.Model):
     """
     Contains the simulation history for the user
     """
-    id = db.Column(db.Integer, primary_key = True,index = True,autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, index=True, autoincrement=True)
     fname = db.Column(db.String(64))
     run_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     results = db.Column(db.LargeBinary)
 
-
-    sim_id = db.Column(db.Integer,db.ForeignKey('open_foam_sim_data.id'))
     # Camel case changes to _ in sqlalchemy
-    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
+    sim_id = db.Column(db.Integer, db.ForeignKey('open_foam_sim_data.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'))
 
     def __repr__(self) -> str:
-        return '<SimulationHistoryData {} {}>'.format(self.sim_id,self.run_date)
+        return '<SimulationHistoryData {} {}>'.format(self.sim_id, self.run_date)
 
-    def add_results(self,results):
+    def add_results(self, results):
         self.results = results
-
 
 
 
