@@ -177,6 +177,8 @@ def run_sim_page(sim_id):
     ----------
     sim_id: the simuation_id of the file
     """
+    if not check_foam_installation():
+        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
     app.logger.debug(f"Id of simulaton to be run:{sim_id}")
     file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
 
@@ -194,6 +196,8 @@ async def run_sim():
     Routing for running the simualation on anothe thread
 
     """
+    if not check_foam_installation():
+        flash("The simulation couldnt be executed")
     sim_id = request.form.get('sim_id')
     sim_entrie = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
     sim_hist= SimulationHistoryData(
@@ -218,8 +222,12 @@ async def run_sim():
     
 
     app.logger.debug(f"Sim output:{sim_output}")
-    sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
-    return render_template('index.html',sim_output = sim_output,sim_hist = sim_hist)
+
+    #sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
+    return render_template('simulation_run.html',
+                           file= sim_entrie,
+                           dir_tree = json.dumps(eval(sim_entrie.dir_tree)),
+                           sim_output = sim_output)
 
 @app.route('/download_sim',methods = ['POST'])
 @login_required
