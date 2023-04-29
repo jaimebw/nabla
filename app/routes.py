@@ -25,7 +25,7 @@ def index():
     """
     if not check_foam_installation():
         app.logger.debug("Open Foam not installed")
-        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
+        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available","info")
     sim_hist = SimulationHistoryData.query.filter_by(user_id = current_user.id).all()
     return render_template('index.html',sim_hist = sim_hist)
 
@@ -178,7 +178,7 @@ def run_sim_page(sim_id):
     sim_id: the simuation_id of the file
     """
     if not check_foam_installation():
-        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
+        flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available","info")
     app.logger.debug(f"Id of simulaton to be run:{sim_id}")
     file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
 
@@ -197,7 +197,7 @@ async def run_sim():
 
     """
     if not check_foam_installation():
-        flash("The simulation couldnt be executed")
+        flash("The simulation couldnt be executed","error")
     sim_id = request.form.get('sim_id')
     sim_entrie = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
     sim_hist= SimulationHistoryData(

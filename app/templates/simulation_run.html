@@ -1,57 +1,63 @@
 {% extends "base.html" %}
 
-
 {% block app_content %}
-<!--
-    TODO:
-        * Add buttons for running simulations
-        * Add CSS for showing well the icons
---> 
-<div id="directory_tree" style="width: 50%; float: left; position: relative; padding-top: 50px;">
-    <h2 style="position: absolute; top: 0; left: 0;">{{file.fname}} directory tree</h2>
-    <div id="directory_script" style="position: relative;">
-        <script src="/static/js/jstree.min.js"></script>
-        <script>
-            const dir_tree= {{ dir_tree|safe }};
-            console.log(dir_tree);
-            $(document).ready(function() {
-                $('#directory_script').jstree({
-                    'core': {
-                        'data':dir_tree 
-                    }
-                }, function() {
-                    $('#directory-tree').jstree('open_all');
-                });
-            });
-        </script>
+{% with messages = get_flashed_messages(category_filter=['error']) %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger" role="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+{% endwith %}
+<div class="container-fluid">
+    <div class="row">
+        <div id="directory_tree" class="col-md-6">
+            <h2>{{file.fname}} directory tree</h2>
+            <div id="directory_script">
+                <script src="/static/js/jstree.min.js"></script>
+                <script>
+                    const dir_tree= {{ dir_tree|safe }};
+                    console.log(dir_tree);
+                    $(document).ready(function() {
+                        $('#directory_script').jstree({
+                            'core': {
+                                'data':dir_tree 
+                            }
+                        }, function() {
+                            $('#directory-tree').jstree('open_all');
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+
+        <div id="sim_actions" class="col-md-6">
+            <div class="mb-4"></div>
+            <h2>Simulation controls</h2>
+            <form action="{{ url_for('run_sim') }}" method="post">
+                <input type="hidden" name="sim_id" value="{{ file.id }}">
+                <button type="submit" class="btn btn-primary">Start simulation</button>
+            </form>
+            <div id="button-container"></div>
+
+            <div class="mb-4"></div>
+            <h2>Simulation outputs</h2>
+            {% if sim_output %}
+            <div class="terminal">
+                <div><span class="terminal-command">{{ sim_output.command|last }}</span></div>
+                {% for output in sim_output.output %}
+                <div>{{ output }}</div>
+                {% endfor %}
+                {% if sim_output.error_code %}
+                {% for error in sim_output.error_code %}
+                <div><span class="terminal-error">{{ error }}</span></div>
+                {% endfor %}
+                {% endif %}
+            {% else %}
+            No simulation running at the moment.
+            {% endif %}
+        </div>
     </div>
 </div>
-
-<div id="sim_actions" style=" width: 50%; float: right;">
-<div style="width: 50%; height: 100px;"></div>
-<h2> Simulation controls </h2>
-<form action = "{{ url_for('run_sim') }}" method = "post">
-    <input type ="hidden" name = "sim_id" value = "{{ file.id }}">
-    <button type="submit" class="btn btn-primary">Start simulation </button>
-</form>
-<div id="button-container"></div>
-
-<div style="width: 50%; height: 100px;"></div>
-<h2> Simulation outputs </h2>
-    {% if sim_output %}
-    <div class="terminal">
-        <div><span class="terminal-command"> {{ sim_output.command|last }} </span> </div>
-                {% for output in sim_output.output %}
-                    <div> {{ output}}  </div>
-                {% endfor %}  
-        {% if sim_output.error_code%}
-            {% for error in sim_output.error_code%}
-                <div><span class="terminal-error"> {{ error}} </span> </div>
-        {% endfor %}
-        {% endif %}
-    {% else %}
-    No simulation running at the moment.
-    {% endif%}
 {% endblock %}
 
 {% block styles %}
