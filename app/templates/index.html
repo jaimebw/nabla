@@ -29,33 +29,34 @@
         <div class="col-md-6 window">
             <h2>Past simulations</h2>
             {% if sim_hist %}
-            <table>
-                <thead>
-                  <tr>
-                    <th>Simulatio name</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for sims in sim_hist %}
-                    <tr>
-                      <td> {{ sims.fname }}</td>
-                      <td> {{ sims.run_date.strftime('%Y-%m-%d') }}</td>
-                      <td> 
-                          {% if sims.results %}
-                        <form action="{{ url_for('download_sim_results') }}" method="post">
-                        <input type="hidden" name="id" value="{{ sims.id }}">
-                        <button type="submit" class="btn btn-primary" >Download results</button>
-                        </form>
-                          {% else %}
-                            No results obtained. Check the simulation logs
-                          {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            {% else %}
+            <table class="table table-hover table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th>Simulation name</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sims in sim_hist %}
+        <tr>
+            <td>{{ sims.fname }}</td>
+            <td>{{ sims.run_date.strftime('%Y-%m-%d') }}</td>
+            <td> 
+                {% if sims.results %}
+                <form action="{{ url_for('download_sim_results') }}" method="post">
+                    <input type="hidden" name="id" value="{{ sims.id }}">
+                    <button type="submit" class="btn btn-primary btn-sm">Download results</button>
+                </form>
+                {% else %}
+                No results obtained. Check the simulation logs
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+                        {% else %}
             <p> No simulation story </p>
             {% endif%}
         </div>

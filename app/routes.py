@@ -207,7 +207,8 @@ async def run_sim():
     command = [
                f"cd {sim_id}/test_case/",
             "chmod +x ./Allrun",
-            "./Allrun" ] app.logger.debug(command)
+            "./Allrun" ] 
+    app.logger.debug(command)
     sim_output = await run_command(command)
     sim_results = await zip_dir(f"{sim_id}/test_case")
 

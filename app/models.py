@@ -151,6 +151,9 @@ class SimulationHistoryData(db.Model):
     def __repr__(self) -> str:
         return '<SimulationHistoryData {} {}>'.format(self.sim_id,self.run_date)
 
+    def add_results(self,results):
+        self.results = results
+
 
 
 
