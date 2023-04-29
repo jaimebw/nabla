@@ -1,5 +1,8 @@
 #!/bin/sh
 cd "${0%/*}" || exit                                # Run from this directory
+wm_project_dir="/usr/lib/openfoam/openfoam2106"
+export WM_PROJECT_DIR=$wm_project_dir
+source $wm_project_dir/bin/tools/RunFunctions 
 #------------------------------------------------------------------------------
 
 canCompile || exit 0    # Dynamic code
