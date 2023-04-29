@@ -2,7 +2,9 @@ from werkzeug.security import generate_password_hash,check_password_hash
 from app import db,login
 from flask_login import UserMixin
 from app.utils import get_zip_directory_structure
-
+import zipfile
+import io
+import os
 
 class User(UserMixin,db.Model):
     """
@@ -111,6 +113,25 @@ class OpenFoamSimData(db.Model):
         Set the user id as the foregin key
         """
         self.user_id = user_id
+
+    def unzip(self):
+        """
+        Extracts the zip file in a directory with the same id as the sim
+
+
+        TODO:
+            * Add option to add more dir inside the dir file so 
+            you can run multiple simulatons out of only one
+        """
+        dir_name = str(self.id)
+        dir_path = os.path.join(os.getcwd(), dir_name)
+        os.makedirs(dir_path, exist_ok=True)
+
+        zip_file = io.BytesIO(self.fdata)
+        with zipfile.ZipFile(zip_file, "r") as zf:
+            zf.extractall(dir_path)
+
+
 
 
     

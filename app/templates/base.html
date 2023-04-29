@@ -9,6 +9,8 @@
     <title>Nabla UI</title>
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <script src="/static/js/jquery.js"></script>
+    {{ bootstrap.load_js() }} 
     {{ bootstrap.load_css() }}
 </head>
 <body>
@@ -56,6 +58,8 @@
 
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
+        {% block styles %}{% endblock %}
+        {% block jscode %}{% endblock %}
     </div>
 {% endblock %}
 </body>

@@ -7,6 +7,7 @@ from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
+from .utils import run_command
 import json
 import sys
 # Submodule import
@@ -18,7 +19,7 @@ from foam_linter import FoamLinter
 @app.route('/')
 @app.route('/index')
 @login_required
-async def index():
+def index():
     """
     Routes to the index template
     """
@@ -27,9 +28,20 @@ async def index():
         flash("WARNING: Open Foam is not installed in your system. Some functionalities won't be available")
     return render_template('index.html')
 
+@app.route('/about')
+def about():
+    """
+    Routes to the about page.
+
+    TO-DO:
+        * Add more info in the about page
+        * add some cool images to make it work well
+    """
+    app.logger.debug("About pagge accesed")
+    return render_template('about.html',)
 
 @app.route('/login',methods = ['GET','POST'])
-async def login():
+def login():
     """
     Routes to the loging template
     """
@@ -118,6 +130,10 @@ def add_dict():
 def add_sim():
     """
     Routing for adding a new dictionary to the database
+
+
+    TODO:
+        * Add to the form to check the file so there are no errors.
     """
     dict_form =  OpenFoamDictForm()
     sim_form = OpenFoamSimForm()
@@ -150,22 +166,52 @@ def simulations():
     return render_template('simulations.html',title = "Simulations",
                            dict_form = dict_form, sim_form = sim_form)
 
-@app.route('/run_sim/<sim_id>',methods = ['GET','POST'])
+@app.route('/sim_page/<sim_id>',methods = ['GET','POST'])
 @login_required
-def run_sim(sim_id):
+def run_sim_page(sim_id):
+    """
+    Routing for the simulation page
+
+    PARAMETERS
+    ----------
+    sim_id: the simuation_id of the file
+    """
     app.logger.debug(f"Id of simulaton to be run:{sim_id}")
     file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
 
     dir_tree = eval(file.dir_tree.decode('utf-8'))
+    file.unzip()
     app.logger.debug(dir_tree)
     return render_template('simulation_run.html',file = file,
                            dir_tree = json.dumps(dir_tree))
 
 
+@app.route('/run_sim',methods = ['GET','POST'])
+@login_required
+async def run_sim():
+    """
+    Routing for running the simualation on anothe thread
+
+    """
+    sim_id = request.form.get('sim_id')
+    #file = OpenFoamSimData.query.filter_by(id = sim_id).first_or_404()
+    
+    app.logger.debug(f"Staring to run the simulation in another thread:{sim_id}")
+
+    command = ["su",
+               f"cd {sim_id}/test_case/",
+            "chmod +x ./Allrun",
+            "./Allrun"
+               ]
+    app.logger.debug(command)
+    sim_output = await run_command(command)
+    app.logger.debug(f"Sim output:{sim_output}")
+
+    return render_template('index.html',sim_output = sim_output)
 
 @app.route('/download_sim',methods = ['POST'])
 @login_required
-def download_sim():
+async def download_sim():
     """
     Route for downloading a dict file
     WIP
@@ -231,48 +277,7 @@ def delete_dict():
     return render_template('user.html',user= user,sim_files = sim_files
                            ,dict_files = dict_files)
 
-async def run_command(command):
-    # Run subprocess and capture output
-    process = await asyncio.create_subprocess_shell(
-        command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    output, _ = await process.communicate()
-
-    # Convert bytes to string
-    output_str = output.decode('utf-8').split("\n")
-    output_str = {"data":output_str[0:3]}
-
-    app.logger.debug(type(output_str))
-    app.logger.debug(output_str)
-    #return {"data":["a","b"]}
-    return output_str
-            
-
-
-@app.route('/run',methods = ['GET','POST'])
-async def test_execute_sim():
-    # DO NO USE JSON DUMP
-    command = "ls"
-    output = await run_command(command)
-    app.logger.debug(f"Test route:{type(output)}\n{output}")
-    return render_template("test.html",output = output)
-
-
-@app.route('/test',methods = ['GET','POST'])
+@app.route('/test',methods = ["GET","POST"])
 def test():
     return render_template("test.html")
 
-
-@app.route('/about')
-def about():
-    """
-    Routes to the about page.
-
-    TO-DO:
-        * Add more info in the about page
-        * add some cool images to make it work well
-    """
-    app.logger.debug("About pagge accesed")
-    return render_template('about.html',)

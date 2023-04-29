@@ -11,7 +11,6 @@
 <div id="directory_tree" style="width: 50%; float: left; position: relative; padding-top: 50px;">
     <h2 style="position: absolute; top: 0; left: 0;">{{file.fname}} directory tree</h2>
     <div id="directory_script" style="position: relative;">
-        <script src="/static/js/jquery.js"></script>
         <script src="/static/js/jstree.min.js"></script>
         <script>
             const dir_tree= {{ dir_tree|safe }};
@@ -32,49 +31,14 @@
 <div id="sim_actions" style=" width: 50%; float: right;">
 <div style="width: 50%; height: 100px;"></div>
 <h2> Simulation controls </h2>
-<button type="submit" onclick ="showButtons()" class="btn btn-primary">Start simulation </button>
+
+<form action = "{{ url_for('run_sim') }}" method = "post">
+    <input type ="hidden" name = "sim_id" value = "{{ file.id }}">
+    <button type="submit" class="btn btn-primary">Start simulation </button>
+</form>
+
 <div id="button-container"></div>
 
 <div style="width: 50%; height: 100px;"></div>
 <h2> Simulation outputs </h2>
-{% if sim_input %}
-
-<!--
-    Create here visualization stuff. It must be accesible from the front side
--->
-{% else %}
-Lel
-{% endif%}
-</div>
-<script>
-		function showButtons() {
-		  // Hide the initial button
-		  const initialButton = document.querySelector('button');
-		  initialButton.style.display = 'none';
-
-		  // Create the two new buttons
-		  const button1 = document.createElement('button');
-		  button1.textContent = 'Button 1';
-		  button1.classList.add('btn', 'btn-success', 'mr-2'); // add Bootstrap classes
-		  button1.addEventListener('click', () => {
-		    // Hide the clicked button
-		    // Call your get method here
-		    console.log('Button 1 clicked!');
-		  });
-
-		  const button2 = document.createElement('button');
-		  button2.textContent = 'Quit simulation';
-		  button2.classList.add('btn', 'btn-danger'); // add Bootstrap classes
-		  button2.addEventListener('click', () => {
-		    // Hide the clicked button
-		    // Call your get method here
-		    console.log('Button 2 clicked!');
-		  });
-
-		  // Append the new buttons to the container div
-		  const container = document.getElementById('button-container');
-		  container.appendChild(button1);
-		  container.appendChild(button2);
-		}
-	</script>
 {% endblock %}

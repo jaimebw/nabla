@@ -3,27 +3,45 @@
 {% block app_content %}
     <div class="row">
         <div class="col-md-6 window">
-            <h2>Window 1</h2>
-            <p>This is the first window.</p>
-        </div>
+            <h2>Current simulations</h2>
+            {% if sim_output %}
+        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#terminal-collapse">
+            Terminal output 
+        </button>
+              <div id="terminal-collapse" class="collapse">
+                <div class="terminal">
+                    {% for command in sim_output.data %}
+                    <div><span class="terminal-command"> {{ command.command }} </span> </div>
+                        {% if command.error_code%}
+                    <div><span class="terminal-error"> {{ command.error_code}} </span> </div>
+                        {% else %}
+                        {% for output in command.output %}
+                        <div> {{ output}}  </div>
+                    {% endfor %}  
+                        {% endif %}
+                        {% endfor %}    
+                </div>
+            </div>
+                {% else %}
+                <p> There are no simulations running  at the moment</p>
+                {% endif %}
+            </div>
+
         <div class="col-md-6 window">
-            <h2>Window 2</h2>
-            <p>This is the second window.</p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 window">
-            <h2>Window 3</h2>
-            <p>This is the third window.</p>
-        </div>
-        <div class="col-md-6 window">
-            <h2>Window 4</h2>
-            <p>This is the fourth window.</p>
+            <h2>Past simulations</h2>
+            <!--
+                TODO:
+                    * Add model to save simulations times and data
+            -->
+            {% if sim_hist %}
+            {% else %}
+            <p> No simulation story </p>
+            {% endif%}
         </div>
     </div>
 {% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% endblock %}
 
