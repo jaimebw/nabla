@@ -1,11 +1,26 @@
-## CS 588 Capstone project
+## CS 588 Capstone project: NABLA
 
-## Docker notes
-Actually, it is better to use:
-* ```docker build -t open-foam .```: this will build following the Dockerfile
-* ```docker run -it open-foam``` : this will rund the commands
-To build the container: ```docker compose build```
-To run the app: ```docker compose up```
+## How to build and run
+
+The reccomended setup is using Docker as it will install OpenFoam, and Python in the vm.
+It is possible to run NABLA just with Python3 and Flask
+
+### Docker(reccomended)
+1. Install Docker and open the terminal
+2. Run ```make build```
+3. Enjoy NABLA :)
+
+### Python3
+1. Install Python in your system
+2. Open the terminal and run:
+```bash
+pip install -r requirements.txt
+flask run
+```
+
+You might need to create a virtualenv.
+
+
 
 ## Db notes
 To modify the sqlite database, you should use the Flask shell:
