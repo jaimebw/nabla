@@ -1,5 +1,5 @@
 services:
-  helloworld:
+  nabla:
     image: pythonandfoam
     build:
       context: ./

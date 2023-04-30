@@ -28,21 +28,6 @@ def test_blockMesh():
     blockMesh.set_domain(domain_dict)
     blockMesh.create_file()
 
-"""
-@pytest.mark.skipif(check_foam_installation() == False,reason= "OF not installed in system")
-def test_runBlockMesh():
-    Runs the blockMehs checker
-    fblockmesh = of_test_dir/"system"/"blockMeshDict"
-
-    with open(str(fblockmesh),"r") as f:
-        dict_str = f.read()
-
-    checker = run.CheckBlocMeshDict(dict_str)
-    
-    test_tuple = checker.check_dict()
-    print(test_tuple[1])
-    assert 1 == test_tuple[0]
-"""
 @pytest.mark.skipif(check_foam_installation() == False,reason= "OF not installed in system")
 def test_runDecomposePar():
     """
