@@ -10,6 +10,23 @@ from io import BytesIO
 def generate_id(name) -> str:
     # Simple hash function
     return str(abs(hash(name)))
+def extract_file_name(file_path: str) -> str:
+    """
+    NOTE: 
+        For some weird reason, in add_sim route, an error raises if I do this
+        directly. Like a BadFile Zip error.
+    """
+    return Path(file_path).name
+
+def is_systemfile(file_name)->bool:
+    """
+    This function checks if the file is a system file. Like .DS_Store or __MACOSX.
+    I need to add Linux support for this too
+    """
+    if file_name.endswith(".DS_Store") or file_name.startswith("__MACOSX"):
+        return True
+    else:
+        return False
 
 
 def get_zip_directory_structure(zip_file_path: str):

@@ -1,3 +1,4 @@
+from zipfile import Path, ZipFile
 from app import app, db
 import asyncio
 from datetime import date
@@ -7,9 +8,11 @@ from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
-from .utils import run_command, zip_dir
+from .utils import extract_file_name, is_systemfile, run_command, zip_dir
 import json
+import os
 import sys
+from io import BytesIO
 
 # Submodule import
 sys.path.append("app/foam_linter")
@@ -147,20 +150,34 @@ def add_sim():
 
     TODO:
         * Add to the form to check the file so there are no errors.
+        * Add a way to check the file and see if it is valid.(fucntion from utils(check_systemfile))
     """
     dict_form = OpenFoamDictForm()
     sim_form = OpenFoamSimForm()
     if sim_form.validate_on_submit():
-        zipfile = request.files[sim_form.fdata.name]
-        sim_file = OpenFoamSimData(
+        zipdata = request.files[sim_form.fdata.name]
+        sim = OpenFoamSimData(
             fname=sim_form.fname.data,
             date=date.today(),
             description=sim_form.description.data,
-            fdata=zipfile.read(),
+            fdata=zipdata.read(),
         )
-        sim_file.set_userid(current_user.id)
-        sim_file.set_dir_tree(zipfile)
-        db.session.add(sim_file)
+        sim.set_userid(current_user.id)
+        sim.set_dir_tree(zipdata)
+        db.session.add(sim)
+        db.session.commit()
+        zipdata = ZipFile(BytesIO(zipdata.getvalue()))
+        for file in zipdata.infolist():
+            app.logger.debug(f"File to unzip: {file.filename}")
+
+            if (not file.is_dir())and not is_systemfile(file.filename):
+                simfile = SimFile(
+                        fname = extract_file_name(file.filename),# Error raro diciendo que esto no es un zip file
+                        fdata = zipdata.read(file.filename),
+                        pathdata = file.filename,
+                        )
+                simfile.set_simid(sim.id)
+                db.session.add(simfile)
         db.session.commit()
         return redirect(url_for("index"))
     return render_template(

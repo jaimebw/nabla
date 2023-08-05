@@ -3,6 +3,7 @@ from app import db, login
 from flask_login import UserMixin
 from app.utils import get_zip_directory_structure
 import zipfile
+import uuid
 import io
 import os
 import datetime
@@ -99,7 +100,7 @@ class OpenFoamSimData(db.Model):
 
     """
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key = True ,default=lambda: uuid.uuid4().int >> (128 - 32), unique=True)
     fname = db.Column(db.String(64), index=True)
     date = db.Column(db.Date)
     description = db.Column(db.String(120), nullable=True)
@@ -129,6 +130,7 @@ class OpenFoamSimData(db.Model):
 
     def unzip(self):
         """
+        DEPRECATED
         Extracts the zip file in a directory with the same id as the sim
 
 
@@ -144,6 +146,21 @@ class OpenFoamSimData(db.Model):
         with zipfile.ZipFile(zip_file, "r") as zf:
             zf.extractall(dir_path)
 
+class SimFile(db.Model):
+    
+    id = db.Column(db.Integer, primary_key = True ,default=lambda: uuid.uuid4().int >> (128 - 32), unique=True)
+    fname = db.Column(db.String(64))
+    date = db.Column(db.Date,default=datetime.datetime.utcnow)
+    fdata = db.Column(db.LargeBinary)
+    pathdata = db.Column(db.String(120), nullable=True)
+
+    sim_id = db.Column(db.Integer, db.ForeignKey("open_foam_sim_data.id", 
+                                                 ondelete="CASCADE"))
+
+    def __repr__(self) -> str:
+        return "<SimFile: {} SimID: {}>".format(self.fname,self.sim_id)
+    def set_simid(self,sim_id):
+        self.sim_id = sim_id
 
 class SimulationHistoryData(db.Model):
     """
