@@ -11,7 +11,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
-                        <th class="text-center">Run</th>
+                        <th class="text-center">View</th>
                         <th class="text-center">Download</th>
                         <th class="text-center">Delete</th>
                     </tr>
@@ -24,7 +24,7 @@
                         <td class="text-center">
                             <form action="{{ url_for('run_sim_page',sim_id=file.id) }}" method="post">
                                 <input type="hidden" name="id" value="{{ file.id }}">
-                                <button type="submit" class="btn btn-secondary">Run</button>
+                                <button type="submit" class="btn btn-secondary">View</button>
                             </form>
                         </td>
                         <td class="text-center">
@@ -48,55 +48,6 @@
             <p>No sim files available.</p>
         {% endif %}
 
-        <h1 class="display-4">Available Dictionaries</h1>
-        <hr>
-         {% if dict_files %}
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th class="text-center">Is it validated?</th>
-                        <th class="text-center">Download</th>
-                        <th class="text-center">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for file in dict_files %}
-                    <tr>
-                        <td>{{file.fname}}</td>
-                        <td>{{file.dict_class}}</td>
-                        <td>{{file.description}}</td>
-                        <td class="text-center">
-                            {% if file.is_validated %}
-                                ✅
-                            {% else %}
-                                ❌
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <form action="{{ url_for('download_dict') }}" method="post">
-                                <input type="hidden" name="id" value="{{ file.id }}">
-                                <button type="submit" class="btn btn-primary">Download</button>
-                            </form>
-                        </td>
-                        <td class="text-center">
-                            <form action="{{ url_for('delete_dict') }}" method="post">
-                                <input type="hidden" name="id" value="{{ file.id }}">
-                                <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-         {% else %}
-            <p>No dict files available.</p>
-        {% endif %}
-    </div>
 {% endblock %}
 
 {% block styles %}

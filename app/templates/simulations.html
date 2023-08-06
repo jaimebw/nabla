@@ -7,12 +7,6 @@
         <hr>
         <div class="row">
             <div class="col-md-6">
-                <h2>Add Dictionary File</h2>
-                <form action="{{ url_for('add_dict') }}" method="post" enctype="multipart/form-data">
-                    {{ render_form(dict_form) }}
-                </form>
-            </div>
-            <div class="col-md-6">
                 <h2>Add Simulation Files</h2>
                 <form action="{{ url_for('add_sim') }}" method="post" enctype="multipart/form-data">
                     {{ render_form(sim_form) }}

@@ -11,25 +11,10 @@
 <div class="container-fluid">
     <div class="row">
         <div id="directory_tree" class="col-md-6">
-            <h2>{{file.fname}} directory tree</h2>
+            <h2>{{file.fname}} </h2>
             <div id="directory_script">
-                <script src="/static/js/jstree.min.js"></script>
-                <script>
-                    const dir_tree= {{ dir_tree|safe }};
-                    console.log(dir_tree);
-                    $(document).ready(function() {
-                        $('#directory_script').jstree({
-                            'core': {
-                                'data':dir_tree 
-                            }
-                        }, function() {
-                            $('#directory-tree').jstree('open_all');
-                        });
-                    });
-                </script>
             </div>
         </div>
-
         <div id="sim_actions" class="col-md-6">
             <div class="mb-4"></div>
             <h2>Simulation controls</h2>
@@ -58,8 +43,20 @@
         </div>
     </div>
 </div>
+<script src="{{url_for('static',filename ='js/jstree.min.js')}}"></script>
+<script>
+    $(document).ready(function() {
+        const dir_tree= {{ dir_tree|safe }};
+        $('#directory_script').jstree({
+            'core': {
+                'data':dir_tree 
+            }
+        }, function() {
+            $('#directory-tree').jstree('open_all');
+        });
+    });
+</script>
 {% endblock %}
-
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/jstree_style.css')}}">
 {% endblock %}
