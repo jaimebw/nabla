@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<title>Simple Code Editor</title>
+<style>
+    .code-mirror-textarea .CodeMirror {
+        max-height: 500px; /* Set this to your desired maximum height */
+        overflow: auto;
+    }
+    .button-wrapper {
+    display: none; /* Hide the button wrapper by default */
+    justify-content: flex-end; /* This will align items to the right */
+    gap: 10px; /* Spacing between buttons. Adjust as needed */
+    margin-top: 15px; /* Space between CodeMirror and buttons. Adjust as needed */
+}
+
+#leftButton {
+    order: -1; /* This ensures the left button stays to the left */
+}
+
+  
+</style>
+<div class="container">
+    <div class="row">
+        <div class="col-md-7">
+  <textarea id="codeEditor" class="code-mirror-textarea">{{ file.fdata|safe }}</textarea>
+            <div class="button-wrapper">
+                <button id="leftButton" class="btn btn-danger" type="submit">Discard changes</button>
+                <button id="rightButton" class="btn btn-primary" type="submit">Save changes</button>
+            </div>
+        <div class="col-md-4">
+            <button class="btn btn-secondary" id="returnb" type="submit">Return</button>
+            </div>
+        </div>
+        <div class="col-md-3">
+        <h2>File details</h2>
+        </div>
+    </div>
+</div>
+
+
+  <script src="{{url_for('static',filename ='js/codemirror.min.js')}}"></script>
+  <script src="{{url_for('static',filename ='js/clike.min.js')}}"></script>
+
+  <script>
+        $(document).ready(function(){
+      var editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
+        lineNumbers: true,
+        mode: "text/x-c++src",
+        viewportMargin: Infinity,
+        height: "auto"
+      });
+     editor.setSize(null, "650px");
+    var contentEdited = false;
+
+    editor.on("change", function(instance, changeObj) {
+        // Mark the content as edited when there's a change
+        contentEdited = true;
+
+        // If the content is edited, show the button wrapper
+        if (contentEdited) {
+            $('.button-wrapper').css('display', 'flex');
+        }
+    });
+    });
+    $(returnb).click(function(){
+        window.location.href = "{{ url_for('run_sim_page',sim_id =file.sim_id) }}";
+    }); 
+  </script>
+
+
+{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/codemirror.min.css') }}">
+{% endblock %}

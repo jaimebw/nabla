@@ -10,6 +10,7 @@ from io import BytesIO
 def generate_id(name) -> str:
     # Simple hash function
     return str(abs(hash(name)))
+
 def extract_file_name(file_path: str) -> str:
     """
     NOTE: 
@@ -34,9 +35,12 @@ def get_zip_directory_structure(zip_file_path: str):
     Gets the directory structure from a zip file and returns it as a JSON object
     in the format expected by jsTree. Ignores .DS_Store files and __MACOSX directories.
 
-
+    NOTES:
+        This should be done in the client side, not in the server side.
+        Simfiles have their path as one of the columns of the db
+        It should be easy to get the directory structure from there.
     TODO:
-        Test this on Linux
+        * Test this on Linux
 
     PARAMETERS
     ----------

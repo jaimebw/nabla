@@ -37,51 +37,6 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 
-class OpenFoamDictData(db.Model):
-    """
-    Class for the Open Foam data table that will input the User
-    data into the database
-
-    Parameters
-    ----------
-
-    id: unique id for the OF dictionary
-    name: Custom name for the OF dictionary
-    date: Date in which the simulation is added
-    dict_class: tells what kind of dictionary it is, for example, blockMeshDict or systemDict
-    description: Optional description of the dictionary
-    dict_data: Actual dictionary that will be uploaded to the database
-    is_validated: Validate thats the file works in Open Foam
-
-
-    """
-
-    id = db.Column(db.Integer, primary_key=True)
-    fname = db.Column(db.String(64), index=True)
-    date = db.Column(db.Date)
-    dict_class = db.Column(db.String(64))
-    description = db.Column(db.String(120), nullable=True)
-    fdata = db.Column(db.Text)
-    is_validated = db.Column(db.Boolean)
-
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-
-    def __repr__(self) -> str:
-        return "<OpenFoamDict {}>".format(self.name)
-
-    def validate(self, is_validated):
-        """
-        Set if the dictionary data is valid
-        """
-        self.is_validated = is_validated
-
-    def set_userid(self, user_id):
-        """
-        Set the user id as the foregin key
-        """
-        self.user_id = user_id
-
-
 class OpenFoamSimData(db.Model):
     """
     Class for the Open Foam simulations tables that will input the User
@@ -159,6 +114,7 @@ class SimFile(db.Model):
 
     def __repr__(self) -> str:
         return "<SimFile: {} SimID: {}>".format(self.fname,self.sim_id)
+
     def set_simid(self,sim_id):
         self.sim_id = sim_id
 

@@ -1,8 +1,8 @@
-from zipfile import Path, ZipFile
+from zipfile import  ZipFile
 from app import app, db
 import asyncio
 from datetime import date
-from flask import render_template, flash, redirect, url_for, request, make_response
+from flask import jsonify, render_template, flash, redirect, url_for, request, make_response
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
@@ -10,7 +10,6 @@ from app.models import *
 from app.forms import *
 from .utils import extract_file_name, is_systemfile, run_command, zip_dir
 import json
-import os
 import sys
 from io import BytesIO
 
@@ -18,6 +17,9 @@ from io import BytesIO
 sys.path.append("app/foam_linter")
 from foam_linter import FoamLinter
 
+@app.route("/test")
+def test():
+    return render_template("edit_simfile.html") 
 
 @app.route("/")
 @app.route("/index")
@@ -106,11 +108,10 @@ def user(username):
     username: username id of the logged person
     """
     user = User.query.filter_by(username=username).first_or_404()
-    dict_files = OpenFoamDictData.query.filter_by(user_id=user.id).all()
     sim_files = OpenFoamSimData.query.filter_by(user_id=user.id).all()
 
     return render_template(
-        "user.html", user=user, sim_files=sim_files, dict_files=dict_files
+        "user.html", user=user, sim_files=sim_files,
     )
 
 
@@ -152,7 +153,6 @@ def add_sim():
         * Add to the form to check the file so there are no errors.
         * Add a way to check the file and see if it is valid.(fucntion from utils(check_systemfile))
     """
-    dict_form = OpenFoamDictForm()
     sim_form = OpenFoamSimForm()
     if sim_form.validate_on_submit():
         zipdata = request.files[sim_form.fdata.name]
@@ -165,7 +165,7 @@ def add_sim():
         sim.set_userid(current_user.id)
         sim.set_dir_tree(zipdata)
         db.session.add(sim)
-        db.session.commit()
+        db.session.commit() # Need to commit to generate id
         zipdata = ZipFile(BytesIO(zipdata.getvalue()))
         for file in zipdata.infolist():
             app.logger.debug(f"File to unzip: {file.filename}")
@@ -183,6 +183,11 @@ def add_sim():
     return render_template(
         "simulations.html", title="Simulations", dict_form=dict_form, sim_form=sim_form
     )
+@app.route("/edit_simfile/<simfile_id>", methods=["GET", "POST"])
+def edit_simfile(simfile_id):
+    sim_file = SimFile.query.filter_by(id=simfile_id).first_or_404()
+
+    return render_template("edit_simfile.html", sim_file=sim_file)
 
 
 @app.route("/simulations", methods=["GET", "POST"])
@@ -194,10 +199,9 @@ def simulations():
     PARAMETERS
     ---------
     """
-    dict_form = OpenFoamDictForm()
     sim_form = OpenFoamSimForm()
     return render_template(
-        "simulations.html", title="Simulations", dict_form=dict_form, sim_form=sim_form
+        "simulations.html", title="Simulations",  sim_form=sim_form
     )
 
 
@@ -217,15 +221,25 @@ def run_sim_page(sim_id):
             "info",
         )
     app.logger.debug(f"Id of simulaton to be run:{sim_id}")
-    file = OpenFoamSimData.query.filter_by(id=sim_id).first_or_404()
+    sim = OpenFoamSimData.query.filter_by(id=sim_id).first_or_404()
+    files = SimFile.query.filter_by(sim_id=sim_id).all()
 
-    dir_tree = eval(file.dir_tree.decode("utf-8"))
-    file.unzip()
-    app.logger.debug(dir_tree)
+    file_list = [{"id":file.id, "fname":file.fname, "pathdata":file.pathdata,"date":file.date.strftime("%m/%d/%Y, %H:%M:%S")} for file in files]
+    app.logger.debug(file_list)
+
+    #dir_tree = eval(sim.dir_tree.decode("utf-8"))
+    #app.logger.debug(dir_tree)
     return render_template(
-        "simulation_run.html", file=file, dir_tree=json.dumps(dir_tree)
+        "simulation_run.html", files = jsonify(file_list).json ,sim = sim
     )
+@app.route("/edit_sim/<sim_id>", methods=["GET", "POST"])
+@login_required
+def edit_sim(sim_id):
+    file = SimFile.query.filter_by(id=sim_id).first_or_404()
+    file.fdata = file.fdata.decode("utf-8")
+    
 
+    return render_template("edit_simfile.html",file = file)
 
 @app.route("/run_sim", methods=["GET", "POST"])
 @login_required
@@ -268,6 +282,9 @@ async def run_sim():
 async def download_sim():
     """
     Route for downloading a dict file
+
+    TODO:
+        * Upgrade to the new models, use the SimFile model
     """
     id = request.form.get("id")
     app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
@@ -326,41 +343,8 @@ def delete_sim():
     user = User.query.filter_by(username=current_user.username).first_or_404()
 
     sim_files = OpenFoamSimData.query.filter_by(user_id=current_user.get_id()).all()
-    dict_files = OpenFoamDictData.query.filter_by(user_id=current_user.get_id()).all()
 
     return render_template(
-        "user.html", user=user, sim_files=sim_files, dict_files=dict_files
+        "user.html", user=user, sim_files=sim_files
     )
-
-
-@app.route("/download_dict", methods=["POST"])
-@login_required
-async def download_dict():
-    """
-    Route for downloading a dict file
-    """
-    id = request.form.get("id")
-    app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
-    file = OpenFoamDictData.query.filter_by(id=id).first_or_404()
-    app.logger.debug(file.fdata)
-    response = make_response(file.fdata)
-    response.headers.set("Content-Disposition", "attachment", filename=file.dict_class)
-    return response
-
-
-@app.route("/delete_dict", methods=["POST"])
-@login_required
-def delete_dict():
-    """
-    Route for deleting dicts from the database
-    """
-    del_id = request.form.get("id")
-    app.logger.debug(f"Deleted dict with id:{id}")
-    file = OpenFoamDictData.query.filter_by(id=del_id).first_or_404()
-    db.session.delete(file)
-    db.session.commit()
-    user = User.query.filter_by(username=current_user.username).first_or_404()
-    files = OpenFoamDictData.query.filter_by(user_id=current_user.get_id()).all()
-    sim_files = OpenFoamSimData.query.filter_by(user_id=current_user.get_id()).all()
-    return render_template("user.html", user=user, sim_files=sim_files)
 

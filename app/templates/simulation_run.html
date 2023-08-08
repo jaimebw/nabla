@@ -11,7 +11,7 @@
 <div class="container-fluid">
     <div class="row">
         <div id="directory_tree" class="col-md-6">
-            <h2>{{file.fname}} </h2>
+            <h2>{{sim.fname}} </h2>
             <div id="directory_script">
             </div>
         </div>
@@ -19,7 +19,7 @@
             <div class="mb-4"></div>
             <h2>Simulation controls</h2>
             <form action="{{ url_for('run_sim') }}" method="post">
-                <input type="hidden" name="sim_id" value="{{ file.id }}">
+                <input type="hidden" name="sim_id" value="{{ sim.id }}">
                 <button type="submit" class="btn btn-primary">Start simulation</button>
             </form>
             <div id="button-container"></div>
@@ -43,20 +43,62 @@
         </div>
     </div>
 </div>
-<script src="{{url_for('static',filename ='js/jstree.min.js')}}"></script>
 <script>
-    $(document).ready(function() {
-        const dir_tree= {{ dir_tree|safe }};
-        $('#directory_script').jstree({
-            'core': {
-                'data':dir_tree 
+    function transformToJSTreeData(fileList) {
+    let treeData = [];
+    fileList.forEach(file => {
+        let paths = file.pathdata.split('/');
+        let currentPath = "";
+        paths.forEach((segment, index) => {
+            currentPath += (index === 0) ? segment : '/' + segment;
+            if (index === paths.length - 1) {
+                // This is a file
+                treeData.push({
+                    "id": currentPath,
+                    "parent": (index === 0) ? "#" : currentPath.substring(0, currentPath.lastIndexOf('/')),
+                    "text": segment,
+                    "data": {
+                        "url": "/edit_sim/" + file.id  // Generate URL using the file ID
+                    }
+                });
+            } else {
+                // This is a folder
+                if (!treeData.some(node => node.id === currentPath)) {
+                    treeData.push({
+                        "id": currentPath,
+                        "parent": (index === 0) ? "#" : currentPath.substring(0, currentPath.lastIndexOf('/')),
+                        "text": segment
+                    });
+                }
             }
-        }, function() {
-            $('#directory-tree').jstree('open_all');
         });
     });
+    return treeData;
+}
+    $(document).ready(function() {
+    const fileList = {{ files|tojson|safe }};
+    const dir_tree = transformToJSTreeData(fileList);
+
+    $('#directory_script').jstree({
+        'core': {
+            'data': dir_tree
+        }
+    }).on('select_node.jstree', function (e, data) {
+        const nodeUrl = data.node.data.url;
+        
+        if (nodeUrl) {
+            window.location.href = nodeUrl;
+        }
+    });
+
+    $('#directory_script').jstree('open_all');
+});
+
+
+
 </script>
 {% endblock %}
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/jstree_style.css')}}">
+<script src="{{url_for('static',filename ='js/jstree.min.js')}}"></script>
 {% endblock %}
