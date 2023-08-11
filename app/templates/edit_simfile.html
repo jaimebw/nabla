@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+
 {% block app_content %}
 <title>Simple Code Editor</title>
 <style>
@@ -18,15 +19,14 @@
     order: -1; /* This ensures the left button stays to the left */
 }
 
-  
 </style>
 <div class="container">
     <div class="row">
         <div class="col-md-7">
-  <textarea id="codeEditor" class="code-mirror-textarea">{{ file.fdata|safe }}</textarea>
+  <textarea id="codeEditor" class="code-mirror-textarea"></textarea>
             <div class="button-wrapper">
-                <button id="leftButton" class="btn btn-danger" type="submit">Discard changes</button>
-                <button id="rightButton" class="btn btn-primary" type="submit">Save changes</button>
+                <button id="discardButton" class="btn btn-danger" type="submit">Discard changes</button>
+                <button id="updateButton" class="btn btn-primary" type="submit">Save changes</button>
             </div>
         <div class="col-md-4">
             <button class="btn btn-secondary" id="returnb" type="submit">Return</button>
@@ -41,16 +41,20 @@
 
   <script src="{{url_for('static',filename ='js/codemirror.min.js')}}"></script>
   <script src="{{url_for('static',filename ='js/clike.min.js')}}"></script>
-
   <script>
-        $(document).ready(function(){
+    $(document).ready(function(){
+        //const data = $('#my-data').data('file');
+        const data = {{ file|safe}};
+        console.log(data);
       var editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
         lineNumbers: true,
         mode: "text/x-c++src",
         viewportMargin: Infinity,
         height: "auto"
       });
+     var initData = data.fdata;
      editor.setSize(null, "650px");
+    editor.setValue(initData);
     var contentEdited = false;
 
     editor.on("change", function(instance, changeObj) {
@@ -62,11 +66,41 @@
             $('.button-wrapper').css('display', 'flex');
         }
     });
-    });
-    $(returnb).click(function(){
-        window.location.href = "{{ url_for('run_sim_page',sim_id =file.sim_id) }}";
-    }); 
-  </script>
+       // Reset editor content when discardButton is clicked
+        $('#discardButton').click(function(){ // Note: Assuming discardButton is an ID, so I prefixed it with #
+            editor.setValue(initData);
+            contentEdited = false;
+            $('.button-wrapper').css('display', 'none');
+        });
+
+        // POST request when updateButton is clicked
+        $('#updateButton').click(function(){ // 
+            var updatedContent = editor.getValue();
+            var dataToSend = {content: updatedContent, 
+                              sim_id: data.simfile_id};
+            $.ajax({
+                 type: "POST",
+                    url: "/update_simfile",
+                    data: JSON.stringify(dataToSend),
+                    contentType: "application/json;charset=utf-8",
+                    success: function(response){
+                        console.log(response);
+                    },
+                    error: function(error){
+                        alert("Error: " + error);
+                      }  
+                    
+            });
+            contentEdited = false;
+            initData = updatedContent;
+            $('.button-wrapper').css('display', 'none');
+
+        });
+
+});
+
+</script>
+
 
 
 {% endblock %}
