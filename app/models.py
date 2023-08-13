@@ -1,11 +1,8 @@
 from werkzeug.security import generate_password_hash, check_password_hash
+from dataclasses import dataclass
 from app import db, login
 from flask_login import UserMixin
-from app.utils import get_zip_directory_structure
-import zipfile
 import uuid
-import io
-import os
 import datetime
 
 
@@ -59,13 +56,12 @@ class OpenFoamSimData(db.Model):
     fname = db.Column(db.String(64), index=True)
     date = db.Column(db.Date)
     description = db.Column(db.String(120), nullable=True)
-    fdata = db.Column(db.LargeBinary)
-    dir_tree = db.Column(db.LargeBinary)
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"))
-    sim_history = db.relationship(
-        "SimulationHistoryData",
-        backref="sim",
+
+    sim_file = db.relationship(
+        "SimFile",
+        backref="parent_sim",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
@@ -73,9 +69,6 @@ class OpenFoamSimData(db.Model):
     def __repr__(self) -> str:
         return "<OpenFoamSim {}>".format(self.name)
 
-    def set_dir_tree(self, zip_file) -> None:
-        """ """
-        self.dir_tree = get_zip_directory_structure(zip_file).encode("utf-8")
 
     def set_userid(self, user_id) -> None:
         """
@@ -83,44 +76,88 @@ class OpenFoamSimData(db.Model):
         """
         self.user_id = user_id
 
-    def unzip(self):
-        """
-        DEPRECATED
-        Extracts the zip file in a directory with the same id as the sim
-
-
-        TODO:
-            * Add option to add more dir inside the dir file so
-            you can run multiple simulatons out of only one
-        """
-        dir_name = str(self.id)
-        dir_path = os.path.join(os.getcwd(), dir_name)
-        os.makedirs(dir_path, exist_ok=True)
-
-        zip_file = io.BytesIO(self.fdata)
-        with zipfile.ZipFile(zip_file, "r") as zf:
-            zf.extractall(dir_path)
-
+@dataclass
 class SimFile(db.Model):
+    """
+    Contains the files for the simulation.
+    """
+    id: int
+    fname: str
+    date: str
+    pathdata: str
+
+    sim_id: int
     
     id = db.Column(db.Integer, primary_key = True ,default=lambda: uuid.uuid4().int >> (128 - 32), unique=True)
     fname = db.Column(db.String(64))
     date = db.Column(db.Date,default=datetime.datetime.utcnow)
-    fdata = db.Column(db.LargeBinary)
     pathdata = db.Column(db.String(120), nullable=True)
 
     sim_id = db.Column(db.Integer, db.ForeignKey("open_foam_sim_data.id", 
                                                  ondelete="CASCADE"))
+    sim_file_histories = db.relationship(
+        "SimFileHistory",
+        backref="parent_file",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
     def __repr__(self) -> str:
         return "<SimFile: {} SimID: {}>".format(self.fname,self.sim_id)
 
     def set_simid(self,sim_id):
         self.sim_id = sim_id
+    def as_dict(self):
+        return {
+                "id": int(self.id),
+                "fname": self.fname,
+                "date": self.date.strftime("%Y-%m-%d"),
+                "pathdata": self.pathdata,
+                "sim_id": int(self.sim_id),
+                }
+
+@dataclass
+class SimFileHistory(db.Model):
+    """
+    Contains the history of the files for the user.
+
+    """
+    id: int
+    mod_date: str
+    fdata: bytes
+    comment: str
+
+    simfile_id: int
+
+    id = db.Column(db.Integer, primary_key = True ,default=lambda: uuid.uuid4().int >> (128 - 32), unique=True)
+    mod_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fdata = db.Column(db.LargeBinary)
+    comment = db.Column(db.String(120), nullable=True)
+
+
+    simfile_id = db.Column(db.Integer, db.ForeignKey("sim_file.id", ondelete="CASCADE"))
+
+
+
+
+    def set_simfileid(self,simfile_id):
+        self.simfile_id=simfile_id 
+
+    def as_dict(self):
+        return {
+                "id": int(self.id),
+                "mod_date": self.mod_date.strftime("%Y-%m-%d"),
+                "comment": self.comment,
+                "simfile_id": int(self.simfile_id),
+                "fdata": self.fdata.decode("utf-8"),
+                }
 
 class SimulationHistoryData(db.Model):
     """
-    Contains the simulation history for the user
+    #Contains the simulation history for the user
+
+    #TODO:
+    #    Change fuking name to something like SimulationREsults
 
     Parameters
     ----------
@@ -132,7 +169,7 @@ class SimulationHistoryData(db.Model):
 
     sim_id: unique id of the simulation
     user_id: user id of the user that the simulation belogns to
-    """
+"""
 
     id = db.Column(db.Integer, primary_key=True, index=True, autoincrement=True)
     fname = db.Column(db.String(64))
