@@ -2,108 +2,46 @@
 
 
 {% block app_content %}
+<span id="fileData" style="display:none;">{{ file| safe }}</span>
 <title>Simple Code Editor</title>
-<style>
-    .code-mirror-textarea .CodeMirror {
-        max-height: 500px; /* Set this to your desired maximum height */
-        overflow: auto;
-    }
-    .button-wrapper {
-    display: none; /* Hide the button wrapper by default */
-    justify-content: flex-end; /* This will align items to the right */
-    gap: 10px; /* Spacing between buttons. Adjust as needed */
-    margin-top: 15px; /* Space between CodeMirror and buttons. Adjust as needed */
-}
 
-#leftButton {
-    order: -1; /* This ensures the left button stays to the left */
-}
-
-</style>
-<div class="container">
+<div class="container mt-5">
     <div class="row">
-        <div class="col-md-7">
-  <textarea id="codeEditor" class="code-mirror-textarea"></textarea>
-            <div class="button-wrapper">
-                <button id="discardButton" class="btn btn-danger" type="submit">Discard changes</button>
-                <button id="updateButton" class="btn btn-primary" type="submit">Save changes</button>
-            </div>
-        <div class="col-md-4">
-            <button class="btn btn-secondary" id="returnb" type="submit">Return</button>
+        <!-- Code Editor Section -->
+        <div class="col-md-8">
+            <textarea id="codeEditor" class="code-mirror-textarea form-control"></textarea>
+            
+            <!-- Button Group -->
+            <div class="button-wrapper mt-3">
+                <button id="returnb" class="btn btn-secondary">Return</button>
+                <div>
+                    <button id="discardButton" class="btn btn-danger mr-2">Discard changes</button>
+                    <button id="updateButton" class="btn btn-primary">Save changes</button>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-        <h2>File details</h2>
+
+        <!-- File Details Section -->
+        <div class="col-md-4">
+            <h2>File details</h2>
+            <!-- You can add file details here. For example: -->
+            <p><strong>File name: </strong>{{file_details.fname|safe }}</p>
+            <p><strong>First added:</strong> {{file_details.date|safe }}</p>
+            <!-- Add more file details as needed -->
         </div>
     </div>
 </div>
 
 
-  <script src="{{url_for('static',filename ='js/codemirror.min.js')}}"></script>
-  <script src="{{url_for('static',filename ='js/clike.min.js')}}"></script>
-  <script>
-    $(document).ready(function(){
-        //const data = $('#my-data').data('file');
-        const data = {{ file|safe}};
-        console.log(data);
-      var editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
-        lineNumbers: true,
-        mode: "text/x-c++src",
-        viewportMargin: Infinity,
-        height: "auto"
-      });
-     var initData = data.fdata;
-     editor.setSize(null, "650px");
-    editor.setValue(initData);
-    var contentEdited = false;
-
-    editor.on("change", function(instance, changeObj) {
-        // Mark the content as edited when there's a change
-        contentEdited = true;
-
-        // If the content is edited, show the button wrapper
-        if (contentEdited) {
-            $('.button-wrapper').css('display', 'flex');
-        }
-    });
-       // Reset editor content when discardButton is clicked
-        $('#discardButton').click(function(){ // Note: Assuming discardButton is an ID, so I prefixed it with #
-            editor.setValue(initData);
-            contentEdited = false;
-            $('.button-wrapper').css('display', 'none');
-        });
-
-        // POST request when updateButton is clicked
-        $('#updateButton').click(function(){ // 
-            var updatedContent = editor.getValue();
-            var dataToSend = {content: updatedContent, 
-                              sim_id: data.simfile_id};
-            $.ajax({
-                 type: "POST",
-                    url: "/update_simfile",
-                    data: JSON.stringify(dataToSend),
-                    contentType: "application/json;charset=utf-8",
-                    success: function(response){
-                        console.log(response);
-                    },
-                    error: function(error){
-                        alert("Error: " + error);
-                      }  
-                    
-            });
-            contentEdited = false;
-            initData = updatedContent;
-            $('.button-wrapper').css('display', 'none');
-
-        });
-
-});
-
-</script>
+<script src="{{url_for('static',filename ='js/codemirror.min.js')}}"></script>
+<script src="{{url_for('static',filename ='js/clike.min.js')}}"></script>
+<script src="{{url_for('static',filename='js/edit_simfile.js')}}"></script>
 
 
 
 {% endblock %}
+
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/codemirror.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/edit_simfile.css') }}">
 {% endblock %}
