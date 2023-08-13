@@ -100,3 +100,5 @@ class OpenFoamSimForm(FlaskForm):
     description = StringField("Describe the simulation if you want")
     fdata = FileField("Select a .zip file", validators=[ZipFileValidator()])
     submit = SubmitField("Add simulation")
+
+
