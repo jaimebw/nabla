@@ -1,14 +1,16 @@
 from zipfile import  ZipFile
+import json
 from app import app, db
 import asyncio
 from datetime import date
+from datetime import datetime
 from flask import jsonify, render_template, flash, redirect, url_for, request, make_response
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.urls import url_parse
 from app.pyfoam.utils import check_foam_installation
 from app.models import *
 from app.forms import *
-from .utils import extract_file_name, is_systemfile, run_command, zip_dir
+from .utils import extract_file_name, is_systemfile, run_command
 import json
 import sys
 from io import BytesIO
@@ -17,9 +19,6 @@ from io import BytesIO
 sys.path.append("app/foam_linter")
 from foam_linter import FoamLinter
 
-@app.route("/test")
-def test():
-    return render_template("edit_simfile.html") 
 
 @app.route("/")
 @app.route("/index")
@@ -115,33 +114,6 @@ def user(username):
     )
 
 
-@app.route("/add_dict", methods=["POST"])
-@login_required
-def add_dict():
-    """
-    Routing for adding a new simulation to the dataset
-    """
-    dict_form = OpenFoamDictForm()
-    sim_form = OpenFoamSimForm()
-    if dict_form.validate_on_submit():
-        dict_file = OpenFoamDictData(
-            fname=dict_form.fname.data,
-            date=date.today(),
-            dict_class=dict_form.dict_class.data,
-            description=dict_form.description.data,
-            fdata=request.files[dict_form.fdata.name].read().decode("unicode_escape"),
-        )
-        linter = FoamLinter(dict_form.dict_class.data)
-        dict_file.validate(linter.lint()[1])
-        dict_file.set_userid(current_user.id)
-        db.session.add(dict_file)
-        db.session.commit()
-        return redirect(url_for("index"))
-    return render_template(
-        "simulations.html", title="Simulations", dict_form=dict_form, sim_form=sim_form
-    )
-
-
 @app.route("/add_sim", methods=["POST"])
 @login_required
 def add_sim():
@@ -160,10 +132,8 @@ def add_sim():
             fname=sim_form.fname.data,
             date=date.today(),
             description=sim_form.description.data,
-            fdata=zipdata.read(),
         )
         sim.set_userid(current_user.id)
-        sim.set_dir_tree(zipdata)
         db.session.add(sim)
         db.session.commit() # Need to commit to generate id
         zipdata = ZipFile(BytesIO(zipdata.getvalue()))
@@ -173,26 +143,57 @@ def add_sim():
             if (not file.is_dir())and not is_systemfile(file.filename):
                 simfile = SimFile(
                         fname = extract_file_name(file.filename),# Error raro diciendo que esto no es un zip file
-                        fdata = zipdata.read(file.filename),
                         pathdata = file.filename,
+                        )
+                simfile_hist = SimFileHistory(
+                        fdata = zipdata.read(file.filename),
+                        comment = "Initial commit",
                         )
                 simfile.set_simid(sim.id)
                 db.session.add(simfile)
+                db.session.commit()
+                simfile_hist.set_simfileid(simfile.id)
+                db.session.add(simfile_hist)
         db.session.commit()
         return redirect(url_for("index"))
     return render_template(
-        "simulations.html", title="Simulations", dict_form=dict_form, sim_form=sim_form
+        "simulations.html", title="Simulations", sim_form=sim_form
     )
-@app.route("/edit_simfile/<simfile_id>", methods=["GET", "POST"])
+
+@app.route("/edit_simfile/<simfile_id>", methods=["GET"])
 def edit_simfile(simfile_id):
-    sim_file = SimFile.query.filter_by(id=simfile_id).first_or_404()
+    app.logger.debug(f"Simfile id: {simfile_id}")
 
-    return render_template("edit_simfile.html", sim_file=sim_file)
+    sim_file = SimFileHistory.query.filter_by(simfile_id=simfile_id).order_by(SimFileHistory.mod_date.desc()).first_or_404()
+    app.logger.debug(sim_file.fdata)
+    sim_file_details = SimFile.query.filter_by(id=simfile_id).first_or_404()
+    sim_file = sim_file.as_dict()
+    sim_file_details = sim_file_details.as_dict()
+    
+   
+
+    return render_template("edit_simfile.html", file=json.dumps(sim_file),\
+                           file_details = sim_file_details)
+
+@app.route("/update_simfile", methods=["POST"])
+def update_simfile():
+    data = request.json
+    data['fdata'] = data['fdata'].encode('utf-8')
+    app.logger.debug("update_simfile POST request")
+    app.logger.debug(data)
+    new_sim_file = SimFileHistory(
+        fdata=data["fdata"], comment=data["comment"], simfile_id=data["simfile_id"])
+    db.session.add(new_sim_file)
+    db.session.commit()
+    return jsonify({"status": "ok"})
 
 
-@app.route("/simulations", methods=["GET", "POST"])
+
+
+
+@app.route("/add_simulations", methods=["GET", "POST"])
 @login_required
-def simulations():
+def add_simulations_page():
     """
     Routing for the simulations page
 
@@ -207,7 +208,7 @@ def simulations():
 
 @app.route("/sim_page/<sim_id>", methods=["GET", "POST"])
 @login_required
-def run_sim_page(sim_id):
+def sim_page(sim_id):
     """
     Routing for running the simulations 
  
@@ -227,25 +228,18 @@ def run_sim_page(sim_id):
     file_list = [{"id":file.id, "fname":file.fname, "pathdata":file.pathdata,"date":file.date.strftime("%m/%d/%Y, %H:%M:%S")} for file in files]
     app.logger.debug(file_list)
 
-    #dir_tree = eval(sim.dir_tree.decode("utf-8"))
-    #app.logger.debug(dir_tree)
     return render_template(
         "simulation_run.html", files = jsonify(file_list).json ,sim = sim
     )
-@app.route("/edit_sim/<sim_id>", methods=["GET", "POST"])
-@login_required
-def edit_sim(sim_id):
-    file = SimFile.query.filter_by(id=sim_id).first_or_404()
-    file.fdata = file.fdata.decode("utf-8")
-    
-
-    return render_template("edit_simfile.html",file = file)
 
 @app.route("/run_sim", methods=["GET", "POST"])
 @login_required
 async def run_sim():
     """
     Routing for running the simualation on anothe thread
+
+    NOTE:
+        Deprecated. Need to be done in a different way.
 
     """
     if not check_foam_installation():
@@ -282,9 +276,12 @@ async def run_sim():
 async def download_sim():
     """
     Route for downloading a dict file
+    NOTE:
+        This route does not work
 
     TODO:
         * Upgrade to the new models, use the SimFile model
+
     """
     id = request.form.get("id")
     app.logger.debug(f"Id of the dictionary that is downloaded:{id}")
@@ -328,7 +325,7 @@ def delete_sim_results():
     return render_template("index.html", sim_hist=sim_hist)
 
 
-@app.route("/delete_sim", methods=["POST"])
+@app.route("/delete_sim",methods=["POST"])
 @login_required
 def delete_sim():
     """
@@ -340,11 +337,8 @@ def delete_sim():
     file = OpenFoamSimData.query.filter_by(id=del_id).first_or_404()
     db.session.delete(file)
     db.session.commit()
-    user = User.query.filter_by(username=current_user.username).first_or_404()
+    return redirect(url_for("user",username = current_user.username))
 
-    sim_files = OpenFoamSimData.query.filter_by(user_id=current_user.get_id()).all()
 
-    return render_template(
-        "user.html", user=user, sim_files=sim_files
-    )
+
 
