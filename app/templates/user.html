@@ -22,7 +22,7 @@
                         <td>{{file.fname}}</td>
                         <td>{{file.description}}</td>
                         <td class="text-center">
-                            <form action="{{ url_for('run_sim_page',sim_id=file.id) }}" method="post">
+                            <form action="{{ url_for('sim_page',sim_id=file.id) }}" method="post">
                                 <input type="hidden" name="id" value="{{ file.id }}">
                                 <button type="submit" class="btn btn-secondary">View</button>
                             </form>
