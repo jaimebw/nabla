@@ -1,0 +1,30 @@
+.button-wrapper {
+    display: none; /* Hide the button wrapper by default */
+    justify-content: flex-end; /* This will align items to the right */
+    gap: 10px; /* Spacing between buttons. Adjust as needed */
+    margin-top: 15px; /* Space between CodeMirror and buttons. Adjust as needed */
+}
+
+#leftButton {
+    order: -1; /* This ensures the left button stays to the left */
+}
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .code-mirror-textarea .CodeMirror {
+            height: 500px; 
+            overflow: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+
+        h2 {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
